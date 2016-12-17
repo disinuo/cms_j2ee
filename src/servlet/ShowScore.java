@@ -33,7 +33,6 @@ public class ShowScore extends HttpServlet{
 	private Connection cnn;
 	private Statement stmt;
 	private PreparedStatement pstmt;
-	private ResultSet rs;
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -53,13 +52,24 @@ public class ShowScore extends HttpServlet{
 		}
     }
     public boolean userIDIfExist(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    	String sql="SELECT * FROM user WHERE id=?";
-    	handlePreparedStatement(sql, (String)request.getAttribute("name"));
+    	String name=(String)request.getAttribute("id");
+
+    	String sql="SELECT * FROM user WHERE id='"+name+"' OR userName='"+name+"'";
+    	ResultSet rs_user=handleStatement(sql);    	
 		try {
-			if(rs.next()){
-				request.setAttribute("name", rs.getString("userName"));
+			if(rs_user.next()){//the user exists
+				request.setAttribute("id", rs_user.getString("id"));
+				sql="SELECT * FROM $tableName WHERE id=?";
+				sql =sql.replace("$tableName",rs_user.getString("type"));
+				
+		    	ResultSet rs_userDetail=handlePreparedStatement(sql,(String)request.getAttribute("id"));
+				rs_userDetail.next();
+				request.setAttribute("chineseName", rs_userDetail.getString("chineseName"));
+				rs_userDetail.close();
 				return true;
 			}
+			rs_user.close();
+			closeResource();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -73,13 +83,13 @@ public class ShowScore extends HttpServlet{
 		response.setContentType("text/html; charset=UTF-8");
 		PrintWriter out = response.getWriter();
 		String name=request.getParameter("name");
-		request.setAttribute("name", name);
+		request.setAttribute("id", name);
 		if(userIDIfExist(request,response)){
-			out.print("NAME:"+request.getAttribute("name"));
+			out.print("Welcome!  "+request.getAttribute("chineseName"));
 		}else{
-			out.println ("user not exist!");
+			out.println ("对不起该账号不存在！");
 		}
-		closeResource();
+		
     	
     }
     /**
@@ -88,18 +98,21 @@ public class ShowScore extends HttpServlet{
      * @param sql
      * @param param
      */
-	private void handlePreparedStatement(String sql,List<String> param){
+	private ResultSet handlePreparedStatement(String sql,List<String> param){
+		ResultSet rs=null;
 		try {
 			cnn = ds.getConnection();
 			pstmt=cnn.prepareStatement(sql);
 			for(int i=0,len=param.size();i<len;i++){
 				pstmt.setString(i+1, param.get(i));
+				System.out.println(param.get(i));
 			}
 			rs=pstmt.executeQuery();
 		} catch (SQLException e) {
 			System.out.print("HandlePreparedStatement Method Error:");
 			e.printStackTrace();
 		}
+		return rs;
 	}
 	/**
      * handle the sql with dynamic parameter
@@ -107,34 +120,37 @@ public class ShowScore extends HttpServlet{
      * @param sql
      * @param param
      */
-	private void handlePreparedStatement(String sql,String param){
+	private ResultSet handlePreparedStatement(String sql,String param){
 		try {
 			cnn = ds.getConnection();
 			pstmt=cnn.prepareStatement(sql);
 			pstmt.setString(1, param);	
-			rs=pstmt.executeQuery();
+			ResultSet rs=pstmt.executeQuery();
+			return rs;
 		} catch (SQLException e) {
 			System.out.print("HandlePreparedStatement Method Error:");
 			e.printStackTrace();
 		}
+		return null;
 	}
 	
-	private void handleStatement(String sql){
+	private ResultSet handleStatement(String sql){
 		try {
 			cnn = ds.getConnection();
 			stmt=cnn.createStatement();
-			rs=stmt.executeQuery(sql);
+			ResultSet rs=stmt.executeQuery(sql);
+			return rs;
 		} catch (SQLException e) {
 			System.out.print("HandleStatement Method Error:");
 			e.printStackTrace();
 		}
+		return null;
 	}
 	/**
-	 * close the resources:resultSet,statement,connection
+	 * close the resources:statement,connection
 	 */
 	public void closeResource(){
 		try {
-			rs.close();
 			if(stmt!=null)stmt.close();
 			if(pstmt!=null)pstmt.close();
 			cnn.close();
