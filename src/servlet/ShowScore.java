@@ -72,16 +72,11 @@ public class ShowScore extends HttpServlet{
     private void setInfo(HttpServletRequest request, HttpServletResponse response) throws  IOException {
 		String type=(String)request.getAttribute("type");
 		String id=(String)request.getAttribute("id");
-		if(type==null) {
-			type=(String)request.getSession(false).getAttribute("type");
-			id=(String)request.getSession(false).getAttribute("id");
-		}
     	String sql="SELECT * FROM "+ type+" WHERE id=?";
 		System.out.println(sql + "  id");
     	ResultSet rs_userDetail=handlePreparedStatement(sql,id);
 		try {
 			rs_userDetail.next();
-			System.out.println("I'm setting chinese name! id= "+id);
 			request.setAttribute("chineseName", rs_userDetail.getString("chineseName"));
 			rs_userDetail.close();
 			closeResource();
@@ -89,7 +84,6 @@ public class ShowScore extends HttpServlet{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
     }
     /**
      * 
@@ -108,38 +102,43 @@ public class ShowScore extends HttpServlet{
 			}
 		}
  		if(session==null){//has a session
-			request.setAttribute("id", request.getParameter("id"));
- 			if(userIDIfExist(request,response)){
- 	 			String id=(String)request.getAttribute("id");
- 	 			setInfo(request, response);
- 				//if the 
- 				boolean isLogin = (id==null)? false:true;
- 				if(isLogin){//then create a session
- 					session=request.getSession(true);
- 					session.setAttribute("id", request.getAttribute("id"));
- 					session.setAttribute("type", request.getAttribute("type"));
- 					if(login_id_cookie!=null){//has a loginID cookie
- 						if(!login_id_cookie.getValue().equals(id)){//not same
- 							//then update the cookie
- 							addUserIDCookie(response,id);
- 						}					
- 					}else{//does not have a loginID cookie
- 						addUserIDCookie(response,id);
- 					}
- 					display(request, response);
- 				}else{//not logged in,then make it to login
- 					response.sendRedirect(request.getContextPath()+"/Login");	
- 				}
- 			}else {
-				displayNotExist(request, response);
-			}
+ 			String id_input=request.getParameter("id");
+ 			if(id_input==null){//not login
+				response.sendRedirect(request.getContextPath()+"/Login");	
+ 			}else{
+ 				request.setAttribute("id", id_input);
+	 			if(userIDIfExist(request,response)){
+	 	 			String id=(String)request.getAttribute("id");
+	 	 			setInfo(request, response);
+	 				//if the 
+	 				boolean isLogin = (id==null)? false:true;
+	 				if(isLogin){//then create a session
+	 					session=request.getSession(true);
+	 					session.setAttribute("id", request.getAttribute("id"));
+	 					session.setAttribute("type", request.getAttribute("type"));
+	 					if(login_id_cookie!=null){//has a loginID cookie
+	 						if(!login_id_cookie.getValue().equals(id)){//not same
+	 							//then update the cookie
+	 							addUserIDCookie(response,id_input);
+	 						}					
+	 					}else{//does not have a loginID cookie
+	 						addUserIDCookie(response,id_input);
+	 					}
+	 					display(request, response);
+	 				}
+	 			}else {
+					displayNotExist(request, response);
+				}
+ 			}
 			
 		}else{//already has a session
 //			session.invalidate();
 			System.out.println("Alreay has a session");
 			String id=(String)session.getAttribute("id");
-			setInfo(request, response);
+			String type=(String)session.getAttribute("type");
 			request.setAttribute("id", id);
+			request.setAttribute("type", type);
+			setInfo(request, response);
 			displayAlreadyIn(request,response);
 			display(request,response);
 		}
