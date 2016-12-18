@@ -1,47 +1,59 @@
 package servlet;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 @WebServlet("/Login")
 public class Login extends HttpServlet {
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
+   
     public Login() {
         super();
     }
-    
-    /**
-     * process the request~
-     * @param request
-     * @param response
-     */
-	private void requestprocessor(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-		RequestDispatcher dispatcher =request.getRequestDispatcher("/user/login.html");
-		dispatcher.include(request,response);
-	}
-
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		requestprocessor(request, response);
+		HttpSession session = request.getSession(false);
+		System.out.println("**********************");
+		System.out.println("in Login servlet");
+
+		System.out.println("*************************");
+		String idCookie="";
+		Cookie[] cookies=request.getCookies();
+		if(cookies!=null){
+			for(Cookie ck:cookies){
+				if(ck.getName().equals("id")){
+					idCookie=ck.getValue();
+					break;
+				}
+			}
+		}
+		String ifLogout=request.getParameter("logout");
+		if(ifLogout!=null){
+			System.out.println("%%%%%%%%");
+			System.out.println("loging out");
+			System.out.println("%%%%%%%%");
+			if(session!=null){
+				session.invalidate();
+				session=null;
+			}
+		}else{
+			System.out.println("%%%%%%%%");
+			System.out.println(idCookie);
+			System.out.println("loging out WTF..");
+			System.out.println("%%%%%%%%");
+		}
+		response.sendRedirect(request.getContextPath()+"/user/login.html?id="+idCookie);
+
 	}
 
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		requestprocessor(request,response);
+		//TODO
 	}
 
 }

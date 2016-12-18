@@ -7,7 +7,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.naming.Context;
@@ -15,12 +14,12 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
-
-import com.sun.org.apache.regexp.internal.recompile;
 
 /**
  * Servlet implementation class DatabaseHandler
@@ -51,9 +50,11 @@ public class ShowScore extends HttpServlet{
 			e.printStackTrace();
 		}
     }
-    public boolean userIDIfExist(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public boolean userIDIfExist(HttpServletRequest request, HttpServletResponse response) throws  IOException {
     	String name=(String)request.getAttribute("id");
-
+    	System.out.println("$$$$  userIfExist Method  $$$$$$");
+    	System.out.println(name);
+    	System.out.println("$$$$$$$$$$");
     	String sql="SELECT * FROM user WHERE id='"+name+"' OR userName='"+name+"'";
     	ResultSet rs_user=handleStatement(sql);    	
 		try {
@@ -79,20 +80,83 @@ public class ShowScore extends HttpServlet{
     /**
      * 
      */
-    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws  IOException {
 		response.setContentType("text/html; charset=UTF-8");
+		HttpSession session=request.getSession(false);
+		Cookie login_id_cookie=null;
+		Cookie[] cookies=request.getCookies();
+		if(cookies!=null){
+			for(Cookie ck:cookies){
+				if(ck.getName().equals("id")){
+					login_id_cookie=new Cookie("id", ck.getValue());
+					break;
+				}
+			}
+		}
+ 		if(session==null){
+ 			String id=request.getParameter("id");
+			//if the 
+			boolean isLogin = (id==null)? false:true;
+			if(isLogin){//then create a session
+				session=request.getSession(true);
+				session.setAttribute("id", id);
+				request.setAttribute("id", id);
+				if(login_id_cookie!=null){//has a loginID cookie
+					if(!login_id_cookie.getValue().equals(id)){//not same
+						//then update the cookie
+						addUserIDCookie(response,id);
+					}					
+				}else{//does not have a loginID cookie
+					addUserIDCookie(response,id);
+				}
+				display(request, response);
+			}else{//not logged in,then make it to login
+				response.sendRedirect(request.getContextPath()+"/Login");	
+			}
+			
+		}else{//already has a session
+			System.out.println("Alreay has a session");
+			String id=(String)session.getAttribute("id");
+			request.setAttribute("id", id);
+			displayAlreadyIn(request,response);
+			display(request,response);
+		}
+
+    }
+    
+    
+    private void displayAlreadyIn(HttpServletRequest request, HttpServletResponse response) throws IOException{
+    	PrintWriter out = response.getWriter();
+		out.println ("已经登录！");
+	}
+	private void addUserIDCookie(HttpServletResponse response,String id) {
+		Cookie login_id_cookie=new Cookie("id",id);
+//TODO		!!!!WHY HERE is RESPOSE add cookie.
+		//but forward when getting cookie is from the request!
+		response.addCookie(login_id_cookie);
+
+	}
+	private void display(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		PrintWriter out = response.getWriter();
-		String name=request.getParameter("name");
-		request.setAttribute("id", name);
 		if(userIDIfExist(request,response)){
 			out.print("Welcome!  "+request.getAttribute("chineseName"));
 		}else{
 			out.println ("对不起该账号不存在！");
 		}
-		
-    	
-    }
-    /**
+		displayLogoutPage(request, response);
+
+	}
+	public void displayLogoutPage(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		PrintWriter out = response.getWriter();
+		// ע��Logout
+		out.println("<form method='GET' action='" + response.encodeURL(request.getContextPath() + "/Login") + "'>");
+		out.println("</p>");
+		out.println("<input type='submit' name='logout' value='logout'>");
+		out.println("</form>");
+		out.println("</body></html>");
+
+	}
+	/**
      * handle the sql with dynamic parameter
      * >1 parameters
      * @param sql
@@ -160,5 +224,17 @@ public class ShowScore extends HttpServlet{
 		}
 			
 	}
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		processRequest(request, response);
+	}
 
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		processRequest(request, response);
+	}
 }

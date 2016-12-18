@@ -6,10 +6,19 @@
 </head>
 <body>
 	<form  method="post" action="/cms_j2ee/ShowScore">
-		<input type='text' name='name' value=''>
-		<input type='password' name='password' value=''>
+		<label for="id">name</label>
+		<input id="id" type='text' name='id' value=''>
+		<br>
+		<label for="password">password</label>
+		<input id="password" type='password' name='password' value=''>
+		<br>		
 		<input type='submit' name='btn' value='Login'>
 	</form>
 
 </body>
+<script type="text/javascript">
+	var nameEle=document.getElementById("id");
+	var nameStr=location.search.split("=")[1];
+	nameEle.value=nameStr;
+</script>
 </html>
