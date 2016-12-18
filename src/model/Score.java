@@ -3,14 +3,10 @@ package model;
 public class Score {
 	private int examID;
 	private String examName;
+	private String courseName;
+	private int courseID;
 	private int score;
 	
-	public Score(int examID, String examName, int score) {
-		super();
-		this.examID = examID;
-		this.examName = examName;
-		this.score = score;
-	}
 	public int getExamID() {
 		return examID;
 	}
@@ -23,11 +19,24 @@ public class Score {
 	public void setExamName(String examName) {
 		this.examName = examName;
 	}
+	public String getCourseName() {
+		return courseName;
+	}
+	public void setCourseName(String courseName) {
+		this.courseName = courseName;
+	}
+	public int getCourseID() {
+		return courseID;
+	}
+	public void setCourseID(int courseID) {
+		this.courseID = courseID;
+	}
 	public int getScore() {
 		return score;
 	}
 	public void setScore(int score) {
 		this.score = score;
 	}
+	
 	
 }

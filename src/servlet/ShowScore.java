@@ -21,6 +21,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
+
+import model.Course;
+import model.Exam;
 import model.Score;
 
 /**
@@ -28,66 +31,7 @@ import model.Score;
  */
 @WebServlet("/ShowScore")
 public class ShowScore extends HttpServlet{
-	private static final long serialVersionUID = 1L;
-	private Context ctx; 
-	private DataSource ds;
-	private Connection cnn;
-	private Statement stmt;
-	private PreparedStatement pstmt;
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
-    public ShowScore() {
-        super();
-    }
-    /**
-     * auto invoked 
-     */
-    public void init(){
-	    try {
-			ctx=new InitialContext();
-		    ds= (DataSource) ctx.lookup("java:comp/env/jdbc/myDB") ;
-		} catch (NamingException e) {
-			System.out.println("Initial Error: "+e);
-			e.printStackTrace();
-		}
-    }
-    public boolean userIDIfExist(HttpServletRequest request, HttpServletResponse response) throws  IOException {
-    	String name=(String)request.getAttribute("id");
-    	String sql="SELECT * FROM user WHERE id='"+name+"' OR userName='"+name+"'";
-    	ResultSet rs_user=handleStatement(sql);    	
-		try {
-			if(rs_user.next()){//the user exists
-				request.setAttribute("id", rs_user.getString("id"));
-				request.setAttribute("type", rs_user.getString("type"));
-				return true;
-			}
-			rs_user.close();
-			closeResource();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-    	return false;
-    }
-    private void setInfo(HttpServletRequest request, HttpServletResponse response) throws  IOException {
-		String type=(String)request.getAttribute("type");
-		String id=(String)request.getAttribute("id");
-    	String sql="SELECT * FROM "+ type+" WHERE id=?";
-		System.out.println(sql + "  id");
-    	ResultSet rs_userDetail=handlePreparedStatement(sql,id);
-		try {
-			rs_userDetail.next();
-			request.setAttribute("chineseName", rs_userDetail.getString("chineseName"));
-			rs_userDetail.close();
-			closeResource();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    }
-    /**
-     * 
-     */
+  
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws  IOException {
 		response.setContentType("text/html; charset=UTF-8");
 		HttpSession session=request.getSession(false);
@@ -110,7 +54,6 @@ public class ShowScore extends HttpServlet{
 	 			if(userIDIfExist(request,response)){
 	 	 			String id=(String)request.getAttribute("id");
 	 	 			setInfo(request, response);
-	 				//if the 
 	 				boolean isLogin = (id==null)? false:true;
 	 				if(isLogin){//then create a session
 	 					session=request.getSession(true);
@@ -126,9 +69,7 @@ public class ShowScore extends HttpServlet{
 	 					}
 	 					display(request, response);
 	 				}
-	 			}else {
-					displayNotExist(request, response);
-				}
+	 			}else {displayNotExist(request, response);}
  			}
 			
 		}else{//already has a session
@@ -144,8 +85,168 @@ public class ShowScore extends HttpServlet{
 		}
 
     }
-    
-    
+	private void addUserIDCookie(HttpServletResponse response,String id) {
+		Cookie login_id_cookie=new Cookie("id",id);
+//TODO		!!!!WHY HERE is RESPOSE add cookie.
+		//but forward when getting cookie is from the request!
+		response.addCookie(login_id_cookie);
+
+	}
+/*****************************************************************************************
+ * Methods with sql :
+ */
+	/**
+	 * check out if the user exists
+	 */
+    private boolean userIDIfExist(HttpServletRequest request, HttpServletResponse response) throws  IOException {
+    	String name=(String)request.getAttribute("id");
+    	String sql="SELECT * FROM user WHERE id='"+name+"' OR userName='"+name+"'";
+    	System.out.println("ifExist sql: "+sql);
+    	ResultSet rs_user=handlePreparedStatement(sql);    	
+
+    	try {
+			if(rs_user.next()){//the user exists
+				request.setAttribute("id", rs_user.getString("id"));
+				request.setAttribute("type", rs_user.getString("type"));
+				return true;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally {
+			try {
+				rs_user.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			closeResource();
+		}
+    	return false;
+    }
+    /**
+     * set the information of the user
+     */
+    private void setInfo(HttpServletRequest request, HttpServletResponse response) throws  IOException {
+		String type=(String)request.getAttribute("type");
+		String id=(String)request.getAttribute("id");
+    	String sql="SELECT * FROM "+ type+" WHERE id=?";
+    	ResultSet rs_userDetail=handlePreparedStatement(sql,id);
+		try {
+			rs_userDetail.next();
+			request.setAttribute("chineseName", rs_userDetail.getString("chineseName"));
+			rs_userDetail.close();
+			closeResource();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+    }
+    /**
+	 * get courses that the user choosed 
+	 * @param request
+	 * @param response
+	 * @throws IOException
+	 */
+	private void getCoursesChosen(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		String id=(String)request.getAttribute("id");
+		String sql="SELECT cid,name as cname FROM selectC,course WHERE cid = course.id AND sid = ?";
+		ResultSet rs=handlePreparedStatement(sql,id);
+		ArrayList<Course> courses=new ArrayList<Course>();
+		try {
+			while(rs.next()){
+				Course course=new Course();
+				course.setId(rs.getInt("cid"));
+				course.setName(rs.getString("cname"));
+				courses.add(course);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		request.setAttribute("course_chosen", courses);
+		closeResource();
+	}
+	/**
+	 * get all the exams that the user should take
+	 * @param request
+	 * @param response
+	 * @throws IOException
+	 */
+	private void getExamsChosen(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		String id=(String)request.getAttribute("id");
+		String sql="SELECT exam.id as examID,exam.name as examName,exam.date as examDate,selectC.cid as courseID,course.name as courseName FROM selectC,exam,course WHERE selectC.cid = exam.cid AND course.id=selectC.cid AND selectC.sid = ?";
+		ResultSet rs=handlePreparedStatement(sql,id);
+		ArrayList<Exam> exams=new ArrayList<Exam>();
+		try {
+			while(rs.next()){
+				Exam exam=new Exam();
+				exam.setId(rs.getInt("examID"));
+				exam.setName(rs.getString("examName"));
+				exam.setDate(rs.getString("examDate"));
+				exam.setCourseID(rs.getInt("courseID"));
+				exam.setCourseName(rs.getString("courseName"));
+				exams.add(exam);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		request.setAttribute("exam_chosen", exams);
+		closeResource();
+	}
+	/**
+	 * get all the scores that the user gets
+	 * @param request
+	 * @param response
+	 * @throws IOException
+	 */
+	private void getScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		String id=(String)request.getAttribute("id");
+		String sql="SELECT exam.id as examID,exam.name as examName,exam.date as examDate,selectC.cid as courseID,course.name as courseName FROM selectC,exam,course WHERE selectC.cid = exam.cid AND course.id=selectC.cid AND selectC.sid = ?";
+
+		System.out.println("getScores: "+sql+id);
+		ResultSet rs=handlePreparedStatement(sql,id);
+		ArrayList<Exam> exams=new ArrayList<Exam>();
+		try {
+			System.out.print("in getSCores method resultSet: "+rs);
+			if(rs!=null){
+				while(rs.next()){
+					Exam exam=new Exam();
+					exam.setId(rs.getInt("examID"));
+					exam.setName(rs.getString("examName"));
+					exam.setDate(rs.getString("examDate"));
+					exam.setCourseID(rs.getInt("courseID"));
+					exam.setCourseName(rs.getString("courseName"));
+					exams.add(exam);
+				}
+
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		request.setAttribute("scores", exams);
+		closeResource();
+	}
+
+/*****************************************************************************************
+ */
+	
+/*****************************************************************************************
+ * Methods about display :
+ */
+	private void display(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		PrintWriter out = response.getWriter();
+			out.print("Welcome!  "+request.getAttribute("chineseName")+"<br>");
+			displayScores(request, response);
+			displayLogoutPage(request, response);
+	}
+	private void displayScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		getScores(request, response);
+//		ArrayList<Score> scores=(ArrayList<Score>)request.getAttribute("scores");
+		PrintWriter out = response.getWriter();
+		out.println("<html><body>");
+		out.println("我的成绩:  <br>");
+//		for (Score score:scores) {
+//			out.println(score.getExamID()+": "+score.getScore()+"<br>");
+//		}
+		out.println("</p>");
+	}
     private void displayNotExist(HttpServletRequest request, HttpServletResponse response) throws IOException{
     	PrintWriter out = response.getWriter();
 		out.println ("对不起该账号不存在！<br>");
@@ -154,55 +255,8 @@ public class ShowScore extends HttpServlet{
     	PrintWriter out = response.getWriter();
 		out.println ("您已经登录！<br>");
 	}
-	private void addUserIDCookie(HttpServletResponse response,String id) {
-		Cookie login_id_cookie=new Cookie("id",id);
-//TODO		!!!!WHY HERE is RESPOSE add cookie.
-		//but forward when getting cookie is from the request!
-		response.addCookie(login_id_cookie);
-
-	}
-	private void display(HttpServletRequest request, HttpServletResponse response) throws IOException{
-		PrintWriter out = response.getWriter();
-			out.print("Welcome!  "+request.getAttribute("chineseName")+"<br>");
-			displayScores(request, response);
-			displayLogoutPage(request, response);
-		
-
-	}
-	private void getScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
-		String id=(String)request.getAttribute("id");
-		String sql="SELECT * FROM score WHERE sid = '"+id+"'";
-		ResultSet rs=handleStatement(sql);
-		ArrayList<Score> scores=new ArrayList<Score>();
-		try {
-			while(rs.next()){
-				Score sc=new Score(rs.getInt("eid"), "", rs.getInt("score"));
-				scores.add(sc);
-			}
-			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		request.setAttribute("scores", scores);
-		closeResource();
-	}
-
-	private void displayScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
-		getScores(request, response);
-		ArrayList<Score> scores=(ArrayList<Score>)request.getAttribute("scores");
-		PrintWriter out = response.getWriter();
-		out.println("<html><body>");
-		out.println("我的成绩:  <br>");
-		for (Score score:scores) {
-			out.println(score.getExamID()+": "+score.getScore()+"<br>");
-
-		}
-		out.println("</p>");
-	}
 	public void displayLogoutPage(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		PrintWriter out = response.getWriter();
-		// ע��Logout
 		out.println("<form method='GET' action='" + response.encodeURL(request.getContextPath() + "/Login") + "'>");
 		out.println("</p>");
 		out.println("<input type='submit' name='logout' value='logout'>");
@@ -210,6 +264,17 @@ public class ShowScore extends HttpServlet{
 		out.println("</body></html>");
 
 	}
+/*****************************************************************************************
+ */
+	
+/*****************************************************************************************
+ * Methods about JDBC :  3 handleStatement,1 close resource
+ */
+	
+/*----------------------------------------------------------------------
+ * three methods that get the data from database using preparedStatement
+ *
+ */
 	/**
      * handle the sql with dynamic parameter
      * >1 parameters
@@ -226,7 +291,7 @@ public class ShowScore extends HttpServlet{
 			}
 			rs=pstmt.executeQuery();
 		} catch (SQLException e) {
-			System.out.print("HandlePreparedStatement Method Error:");
+			System.out.print("HandlePreparedStatement Method -- >=2 parameters Error:");
 			e.printStackTrace();
 		}
 		return rs;
@@ -245,38 +310,41 @@ public class ShowScore extends HttpServlet{
 			ResultSet rs=pstmt.executeQuery();
 			return rs;
 		} catch (SQLException e) {
-			System.out.print("HandlePreparedStatement Method Error:");
+			System.out.print("HandlePreparedStatement Method --1 parameter Error:");
 			e.printStackTrace();
 		}
 		return null;
 	}
 	
-	private ResultSet handleStatement(String sql){
+	private ResultSet handlePreparedStatement(String sql){
 		try {
 			cnn = ds.getConnection();
-			stmt=cnn.createStatement();
-			ResultSet rs=stmt.executeQuery(sql);
+			pstmt=cnn.prepareStatement(sql);
+			ResultSet rs=pstmt.executeQuery(sql);
 			return rs;
 		} catch (SQLException e) {
-			System.out.print("HandleStatement Method Error:");
+			System.out.print("HandlePreparedStatement Method --no parameter Error:");
 			e.printStackTrace();
 		}
 		return null;
 	}
+/*----------------------------------------------------------------------
+ */
 	/**
 	 * close the resources:statement,connection
 	 */
 	public void closeResource(){
 		try {
-			if(stmt!=null)stmt.close();
 			if(pstmt!=null)pstmt.close();
-			cnn.close();
+			if(cnn!=null)cnn.close();
 		} catch (SQLException e) {
 			System.out.print("closing resource Error:");
 			e.printStackTrace();
 		}
 			
 	}
+/*****************************************************************************************
+ */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		processRequest(request, response);
@@ -290,4 +358,32 @@ public class ShowScore extends HttpServlet{
 			throws ServletException, IOException {
 		processRequest(request, response);
 	}
+    /**
+     * initialize the datasource ***************************
+     * auto invoked 
+     */
+    public void init(){
+	    try {
+			ctx=new InitialContext();
+		    ds= (DataSource) ctx.lookup("java:comp/env/jdbc/myDB") ;
+		} catch (NamingException e) {
+			System.out.println("Initial Error: "+e);
+			e.printStackTrace();
+		}
+    }
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public ShowScore() {
+        super();
+    }
+/***********variables****************************************************************
+ */
+	private static final long serialVersionUID = 1L;
+	private Context ctx; 
+	private DataSource ds;
+	private Connection cnn;
+	private Statement stmt;
+	private PreparedStatement pstmt;
+
 }
