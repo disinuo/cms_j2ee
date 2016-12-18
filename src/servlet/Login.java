@@ -42,14 +42,8 @@ public class Login extends HttpServlet {
 				session.invalidate();
 				session=null;
 			}
-		}else{
-			System.out.println("%%%%%%%%");
-			System.out.println(idCookie);
-			System.out.println("loging out WTF..");
-			System.out.println("%%%%%%%%");
 		}
 		response.sendRedirect(request.getContextPath()+"/user/login.html?id="+idCookie);
-
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

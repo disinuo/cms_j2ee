@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.naming.Context;
@@ -20,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
+import model.Score;
 
 /**
  * Servlet implementation class DatabaseHandler
@@ -52,21 +54,12 @@ public class ShowScore extends HttpServlet{
     }
     public boolean userIDIfExist(HttpServletRequest request, HttpServletResponse response) throws  IOException {
     	String name=(String)request.getAttribute("id");
-    	System.out.println("$$$$  userIfExist Method  $$$$$$");
-    	System.out.println(name);
-    	System.out.println("$$$$$$$$$$");
     	String sql="SELECT * FROM user WHERE id='"+name+"' OR userName='"+name+"'";
     	ResultSet rs_user=handleStatement(sql);    	
 		try {
 			if(rs_user.next()){//the user exists
 				request.setAttribute("id", rs_user.getString("id"));
-				sql="SELECT * FROM $tableName WHERE id=?";
-				sql =sql.replace("$tableName",rs_user.getString("type"));
-				
-		    	ResultSet rs_userDetail=handlePreparedStatement(sql,(String)request.getAttribute("id"));
-				rs_userDetail.next();
-				request.setAttribute("chineseName", rs_userDetail.getString("chineseName"));
-				rs_userDetail.close();
+				request.setAttribute("type", rs_user.getString("type"));
 				return true;
 			}
 			rs_user.close();
@@ -76,7 +69,28 @@ public class ShowScore extends HttpServlet{
 		}
     	return false;
     }
+    private void setInfo(HttpServletRequest request, HttpServletResponse response) throws  IOException {
+		String type=(String)request.getAttribute("type");
+		String id=(String)request.getAttribute("id");
+		if(type==null) {
+			type=(String)request.getSession(false).getAttribute("type");
+			id=(String)request.getSession(false).getAttribute("id");
+		}
+    	String sql="SELECT * FROM "+ type+" WHERE id=?";
+		System.out.println(sql + "  id");
+    	ResultSet rs_userDetail=handlePreparedStatement(sql,id);
+		try {
+			rs_userDetail.next();
+			System.out.println("I'm setting chinese name! id= "+id);
+			request.setAttribute("chineseName", rs_userDetail.getString("chineseName"));
+			rs_userDetail.close();
+			closeResource();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
+    }
     /**
      * 
      */
@@ -85,7 +99,7 @@ public class ShowScore extends HttpServlet{
 		HttpSession session=request.getSession(false);
 		Cookie login_id_cookie=null;
 		Cookie[] cookies=request.getCookies();
-		if(cookies!=null){
+		if(cookies!=null){//looking for the idCookie
 			for(Cookie ck:cookies){
 				if(ck.getName().equals("id")){
 					login_id_cookie=new Cookie("id", ck.getValue());
@@ -93,30 +107,38 @@ public class ShowScore extends HttpServlet{
 				}
 			}
 		}
- 		if(session==null){
- 			String id=request.getParameter("id");
-			//if the 
-			boolean isLogin = (id==null)? false:true;
-			if(isLogin){//then create a session
-				session=request.getSession(true);
-				session.setAttribute("id", id);
-				request.setAttribute("id", id);
-				if(login_id_cookie!=null){//has a loginID cookie
-					if(!login_id_cookie.getValue().equals(id)){//not same
-						//then update the cookie
-						addUserIDCookie(response,id);
-					}					
-				}else{//does not have a loginID cookie
-					addUserIDCookie(response,id);
-				}
-				display(request, response);
-			}else{//not logged in,then make it to login
-				response.sendRedirect(request.getContextPath()+"/Login");	
+ 		if(session==null){//has a session
+			request.setAttribute("id", request.getParameter("id"));
+ 			if(userIDIfExist(request,response)){
+ 	 			String id=(String)request.getAttribute("id");
+ 	 			setInfo(request, response);
+ 				//if the 
+ 				boolean isLogin = (id==null)? false:true;
+ 				if(isLogin){//then create a session
+ 					session=request.getSession(true);
+ 					session.setAttribute("id", request.getAttribute("id"));
+ 					session.setAttribute("type", request.getAttribute("type"));
+ 					if(login_id_cookie!=null){//has a loginID cookie
+ 						if(!login_id_cookie.getValue().equals(id)){//not same
+ 							//then update the cookie
+ 							addUserIDCookie(response,id);
+ 						}					
+ 					}else{//does not have a loginID cookie
+ 						addUserIDCookie(response,id);
+ 					}
+ 					display(request, response);
+ 				}else{//not logged in,then make it to login
+ 					response.sendRedirect(request.getContextPath()+"/Login");	
+ 				}
+ 			}else {
+				displayNotExist(request, response);
 			}
 			
 		}else{//already has a session
+//			session.invalidate();
 			System.out.println("Alreay has a session");
 			String id=(String)session.getAttribute("id");
+			setInfo(request, response);
 			request.setAttribute("id", id);
 			displayAlreadyIn(request,response);
 			display(request,response);
@@ -125,9 +147,13 @@ public class ShowScore extends HttpServlet{
     }
     
     
-    private void displayAlreadyIn(HttpServletRequest request, HttpServletResponse response) throws IOException{
+    private void displayNotExist(HttpServletRequest request, HttpServletResponse response) throws IOException{
     	PrintWriter out = response.getWriter();
-		out.println ("已经登录！");
+		out.println ("对不起该账号不存在！<br>");
+	}
+	private void displayAlreadyIn(HttpServletRequest request, HttpServletResponse response) throws IOException{
+    	PrintWriter out = response.getWriter();
+		out.println ("您已经登录！<br>");
 	}
 	private void addUserIDCookie(HttpServletResponse response,String id) {
 		Cookie login_id_cookie=new Cookie("id",id);
@@ -138,13 +164,42 @@ public class ShowScore extends HttpServlet{
 	}
 	private void display(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		PrintWriter out = response.getWriter();
-		if(userIDIfExist(request,response)){
-			out.print("Welcome!  "+request.getAttribute("chineseName"));
-		}else{
-			out.println ("对不起该账号不存在！");
-		}
-		displayLogoutPage(request, response);
+			out.print("Welcome!  "+request.getAttribute("chineseName")+"<br>");
+			displayScores(request, response);
+			displayLogoutPage(request, response);
+		
 
+	}
+	private void getScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		String id=(String)request.getAttribute("id");
+		String sql="SELECT * FROM score WHERE sid = '"+id+"'";
+		ResultSet rs=handleStatement(sql);
+		ArrayList<Score> scores=new ArrayList<Score>();
+		try {
+			while(rs.next()){
+				Score sc=new Score(rs.getInt("eid"), "", rs.getInt("score"));
+				scores.add(sc);
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		request.setAttribute("scores", scores);
+		closeResource();
+	}
+
+	private void displayScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		getScores(request, response);
+		ArrayList<Score> scores=(ArrayList<Score>)request.getAttribute("scores");
+		PrintWriter out = response.getWriter();
+		out.println("<html><body>");
+		out.println("我的成绩:  <br>");
+		for (Score score:scores) {
+			out.println(score.getExamID()+": "+score.getScore()+"<br>");
+
+		}
+		out.println("</p>");
 	}
 	public void displayLogoutPage(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		PrintWriter out = response.getWriter();
@@ -169,7 +224,6 @@ public class ShowScore extends HttpServlet{
 			pstmt=cnn.prepareStatement(sql);
 			for(int i=0,len=param.size();i<len;i++){
 				pstmt.setString(i+1, param.get(i));
-				System.out.println(param.get(i));
 			}
 			rs=pstmt.executeQuery();
 		} catch (SQLException e) {
