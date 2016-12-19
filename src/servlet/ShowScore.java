@@ -80,7 +80,7 @@ public class ShowScore extends HttpServlet{
 			request.setAttribute("id", id);
 			request.setAttribute("type", type);
 			setInfo(request, response);
-			displayAlreadyIn(request,response);
+//			displayAlreadyIn(request,response);
 			display(request,response);
 		}
 
@@ -115,10 +115,10 @@ public class ShowScore extends HttpServlet{
 		}finally {
 			try {
 				rs_user.close();
+				closeResource();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			closeResource();
 		}
     	return false;
     }
@@ -129,18 +129,24 @@ public class ShowScore extends HttpServlet{
 		String type=(String)request.getAttribute("type");
 		String id=(String)request.getAttribute("id");
     	String sql="SELECT * FROM "+ type+" WHERE id=?";
-    	ResultSet rs_userDetail=handlePreparedStatement(sql,id);
+    	ResultSet rs=handlePreparedStatement(sql,id);
 		try {
-			rs_userDetail.next();
-			request.setAttribute("chineseName", rs_userDetail.getString("chineseName"));
-			rs_userDetail.close();
-			closeResource();
+			rs.next();
+			request.setAttribute("chineseName", rs.getString("chineseName"));
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally {
+			try {
+				rs.close();
+				closeResource();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
     }
     /**
 	 * get courses that the user choosed 
+	 * Attribute name: course_chosen
 	 * @param request
 	 * @param response
 	 * @throws IOException
@@ -164,12 +170,19 @@ public class ShowScore extends HttpServlet{
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally {
+			try {
+				rs.close();
+				closeResource();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 		request.setAttribute("course_chosen", courses);
-		closeResource();
 	}
 	/**
 	 * get all the exams that the user should take
+ 	 * Attribute name: exam_chosen
 	 * @param request
 	 * @param response
 	 * @throws IOException
@@ -196,12 +209,19 @@ public class ShowScore extends HttpServlet{
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally {
+			try {
+				rs.close();
+				closeResource();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 		request.setAttribute("exam_chosen", exams);
-		closeResource();
 	}
 	/**
 	 * get all the scores that the user gets
+	 * Attribute name: scores
 	 * @param request
 	 * @param response
 	 * @throws IOException
@@ -232,9 +252,15 @@ public class ShowScore extends HttpServlet{
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally {
+			try {
+				rs.close();
+				closeResource();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 		request.setAttribute("scores", scores);
-		closeResource();
 	}
 
 /*****************************************************************************************
@@ -246,7 +272,8 @@ public class ShowScore extends HttpServlet{
 	private void display(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		PrintWriter out = response.getWriter();
 			out.print("Welcome!  "+request.getAttribute("chineseName")+"<br>");
-			displayScores(request, response);
+			displayScores(request, response);//and alert if user has some exam not taken
+			
 			displayLogoutPage(request, response);
 	}
 	private void displayScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
@@ -259,7 +286,30 @@ public class ShowScore extends HttpServlet{
 		for (Score score:scores) {
 			out.println("<tr><td>"+score.getCourseName()+"</td><td>"+score.getExamName()+"</td><td>"+score.getScore()+"</td></tr>");
 		}
-		out.println("</table></body></html>");
+		out.println("</table>");
+//		checkout whether the user has some exam didn't take
+		getExamsChosen(request, response);
+		ArrayList<Exam> exams_chosen=(ArrayList<Exam>)request.getAttribute("exam_chosen");
+		ArrayList<Exam> exams_not_taken=new ArrayList<Exam>();
+		//get all the examIDs that user should take
+		//compare the examIDs. `should take` vs `have taken`
+		for(Exam exam:exams_chosen){
+			boolean taken=false;
+			for(Score score:scores){
+				if(exam.getId()==score.getExamID()){
+					taken=true;
+					break;
+				}
+			}
+			if(!taken){
+				exams_not_taken.add(exam);
+			}
+		}
+		if(exams_not_taken.size()>0){
+			request.setAttribute("exams_not_taken", exams_not_taken);
+			displayExamNotTakenAlert(request, response);	
+		}
+		out.println("</body></html>");
 	}
     private void displayNotExist(HttpServletRequest request, HttpServletResponse response) throws IOException{
     	PrintWriter out = response.getWriter();
@@ -269,6 +319,17 @@ public class ShowScore extends HttpServlet{
     	PrintWriter out = response.getWriter();
 		out.println ("您已经登录！<br>");
 	}
+	//alert user has some exam that should've taken
+	private void displayExamNotTakenAlert(HttpServletRequest request, HttpServletResponse response) throws IOException{
+    	PrintWriter out = response.getWriter();
+		out.println ("<p style='color:red'>您有没参加的考试!</p>");
+		ArrayList<Exam> exams=(ArrayList<Exam>)request.getAttribute("exams_not_taken");
+		out.println("<table style='color:red'>");
+		for(Exam exam:exams) {
+			out.println("<tr><td>"+exam.getCourseName()+"</td><td>"+exam.getName()+"</td><td>"+exam.getDate()+"</td></tr>");
+		}
+		out.println("</table>");
+	}
 	public void displayLogoutPage(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		PrintWriter out = response.getWriter();
 		out.println("<form method='GET' action='" + response.encodeURL(request.getContextPath() + "/Login") + "'>");
@@ -276,7 +337,6 @@ public class ShowScore extends HttpServlet{
 		out.println("<input type='submit' name='logout' value='logout'>");
 		out.println("</form>");
 		out.println("</body></html>");
-
 	}
 /*****************************************************************************************
  */
@@ -362,6 +422,7 @@ public class ShowScore extends HttpServlet{
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		processRequest(request, response);
+//		System.out.println("get");
 	}
 
 	/**
@@ -371,6 +432,7 @@ public class ShowScore extends HttpServlet{
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		processRequest(request, response);
+//		System.out.println("post");
 	}
     /**
      * initialize the datasource ***************************
