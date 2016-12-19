@@ -3,6 +3,7 @@ package model;
 public class Score {
 	private int examID;
 	private String examName;
+	private String examDate;
 	private String courseName;
 	private int courseID;
 	private int score;
@@ -18,6 +19,13 @@ public class Score {
 	}
 	public void setExamName(String examName) {
 		this.examName = examName;
+	}
+	
+	public String getExamDate() {
+		return examDate;
+	}
+	public void setExamDate(String examDate) {
+		this.examDate = examDate;
 	}
 	public String getCourseName() {
 		return courseName;

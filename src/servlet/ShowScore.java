@@ -151,11 +151,16 @@ public class ShowScore extends HttpServlet{
 		ResultSet rs=handlePreparedStatement(sql,id);
 		ArrayList<Course> courses=new ArrayList<Course>();
 		try {
-			while(rs.next()){
-				Course course=new Course();
-				course.setId(rs.getInt("cid"));
-				course.setName(rs.getString("cname"));
-				courses.add(course);
+			if(rs!=null){
+				while(rs.next()){
+					Course course=new Course();
+					course.setId(rs.getInt("cid"));
+					course.setName(rs.getString("cname"));
+					courses.add(course);
+				}
+			}else{
+				//TODO handle resultSet is null
+				System.out.println( "getCoursesChosen  resultSet is null");
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -175,14 +180,19 @@ public class ShowScore extends HttpServlet{
 		ResultSet rs=handlePreparedStatement(sql,id);
 		ArrayList<Exam> exams=new ArrayList<Exam>();
 		try {
-			while(rs.next()){
-				Exam exam=new Exam();
-				exam.setId(rs.getInt("examID"));
-				exam.setName(rs.getString("examName"));
-				exam.setDate(rs.getString("examDate"));
-				exam.setCourseID(rs.getInt("courseID"));
-				exam.setCourseName(rs.getString("courseName"));
-				exams.add(exam);
+			if(rs!=null){
+				while(rs.next()){
+					Exam exam=new Exam();
+					exam.setId(rs.getInt("examID"));
+					exam.setName(rs.getString("examName"));
+					exam.setDate(rs.getString("examDate"));
+					exam.setCourseID(rs.getInt("courseID"));
+					exam.setCourseName(rs.getString("courseName"));
+					exams.add(exam);
+				}
+			}else{
+				//TODO handle resultSet is null
+				System.out.println( "getExamsChosen  resultSet is null");
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -198,29 +208,32 @@ public class ShowScore extends HttpServlet{
 	 */
 	private void getScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		String id=(String)request.getAttribute("id");
-		String sql="SELECT exam.id as examID,exam.name as examName,exam.date as examDate,selectC.cid as courseID,course.name as courseName FROM selectC,exam,course WHERE selectC.cid = exam.cid AND course.id=selectC.cid AND selectC.sid = ?";
-
+		String sql="SELECT exam.id as examID,exam.name as examName,exam.date as examDate,course.id as courseID,course.name as courseName,score.score as score FROM exam,course,score WHERE score.eid=exam.id AND course.id=exam.cid AND score.sid =?";
 		System.out.println("getScores: "+sql+id);
 		ResultSet rs=handlePreparedStatement(sql,id);
-		ArrayList<Exam> exams=new ArrayList<Exam>();
+		ArrayList<Score> scores=new ArrayList<Score>();
 		try {
-			System.out.print("in getSCores method resultSet: "+rs);
+//			System.out.print("in getSCores method resultSet: "+rs);
 			if(rs!=null){
 				while(rs.next()){
-					Exam exam=new Exam();
-					exam.setId(rs.getInt("examID"));
-					exam.setName(rs.getString("examName"));
-					exam.setDate(rs.getString("examDate"));
-					exam.setCourseID(rs.getInt("courseID"));
-					exam.setCourseName(rs.getString("courseName"));
-					exams.add(exam);
+					Score score=new Score();
+					score.setExamID(rs.getInt("examID"));
+					score.setExamName(rs.getString("examName"));
+					score.setExamDate(rs.getString("examDate"));
+					score.setCourseID(rs.getInt("courseID"));
+					score.setCourseName(rs.getString("courseName"));
+					score.setScore(rs.getInt("Score"));
+					scores.add(score);
 				}
 
+			}else{
+				//TODO handle resultSet is null
+				System.out.println( "getScores  resultSet is null");
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		request.setAttribute("scores", exams);
+		request.setAttribute("scores", scores);
 		closeResource();
 	}
 
@@ -238,14 +251,15 @@ public class ShowScore extends HttpServlet{
 	}
 	private void displayScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		getScores(request, response);
-//		ArrayList<Score> scores=(ArrayList<Score>)request.getAttribute("scores");
+		ArrayList<Score> scores=(ArrayList<Score>)request.getAttribute("scores");
 		PrintWriter out = response.getWriter();
-		out.println("<html><body>");
+		out.println("<html><body><br>");
 		out.println("我的成绩:  <br>");
-//		for (Score score:scores) {
-//			out.println(score.getExamID()+": "+score.getScore()+"<br>");
-//		}
-		out.println("</p>");
+		out.println("<table><thead><td>课程</td><td>考试</td><td>分数</td></thead>");
+		for (Score score:scores) {
+			out.println("<tr><td>"+score.getCourseName()+"</td><td>"+score.getExamName()+"</td><td>"+score.getScore()+"</td></tr>");
+		}
+		out.println("</table></body></html>");
 	}
     private void displayNotExist(HttpServletRequest request, HttpServletResponse response) throws IOException{
     	PrintWriter out = response.getWriter();
