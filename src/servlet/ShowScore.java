@@ -35,6 +35,7 @@ public class ShowScore extends HttpServlet{
   
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws  IOException {
 		response.setContentType("text/html; charset=UTF-8");
+		System.out.println("the name input: "+request.getParameter("id"));
 		HttpSession session=request.getSession(false);
 		Cookie login_id_cookie=null;
 		Cookie[] cookies=request.getCookies();
