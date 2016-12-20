@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.Cookie;
@@ -14,12 +15,18 @@ import javax.servlet.http.HttpSession;
 
 @WebServlet("/Login")
 public class Login extends HttpServlet {
-   
+	private int counter_visitor=0;
+	private int counter_login=0;
     public Login() {
         super();
     }
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html; charset=UTF-8");
+		
+		ServletContext Context= getServletContext();
+		counter_visitor=Integer.parseInt((String)Context.getAttribute("counter_visitor"));
+		counter_login=Integer.parseInt((String)Context.getAttribute("counter_login"));
+
 		HttpSession session = request.getSession(false);
 		System.out.println("**********************");
 		System.out.println("in Login servlet");
@@ -65,7 +72,12 @@ public class Login extends HttpServlet {
 		
 		out.println("<form method='post' action='/cms_j2ee/ShowScore'>");
 		out.println("<input type='submit' name='btn' value='Login_as_a_visitor'>");
-		out.println("</form></body></html>");
+		out.println("</form>");
+		out.println("<p>站点统计：</p>");
+		out.println("<p style='size:8px'>总访问量："+(counter_login+counter_visitor));
+		out.println(",登录人数："+counter_login);
+		out.println(",游客人数："+counter_visitor);
+		out.println("</body></html>");
 	}
 
 }

@@ -6,13 +6,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.Cookie;
@@ -22,7 +22,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 
-import model.Course;
 import model.Exam;
 import model.Score;
 
@@ -32,9 +31,13 @@ import model.Score;
  */
 @WebServlet("/ShowScore")
 public class ShowScore extends HttpServlet{
-  
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws  IOException {
 		response.setContentType("text/html; charset=UTF-8");
+		ServletContext context= getServletContext();
+		int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
+		int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
+	
+		
 		System.out.println("the name input: "+request.getParameter("id"));
 		HttpSession session=request.getSession(false);
 		Cookie login_id_cookie=null;
@@ -51,13 +54,16 @@ public class ShowScore extends HttpServlet{
  			String id_input=request.getParameter("id");
 //=============  1.Visitor ===========================
  			if(id_input==null){//not login
+ 				context.setAttribute("counter_visitor", Integer.toString(++counter_visitor));
 				displayVisitor(request, response);
 				displayGoToLogin(request,response);
+				displayCounter(request, response);
 //====================================================	
  			}else{
  				request.setAttribute("id", id_input);
 //===============2.first time log in ======================
 	 			if(userIDIfExist(request,response)){
+	 				context.setAttribute("counter_login", Integer.toString(++counter_login));
 	 	 			String id=(String)request.getAttribute("id");
 	 	 			setInfo(request, response);
 	 				//then create a session
@@ -78,6 +84,7 @@ public class ShowScore extends HttpServlet{
 	 			}else {
 	 				displayNotExist(request, response);
 	 				displayGoToLogin(request,response);
+					displayCounter(request, response);
 //=====================================================	
 	 			}
  			}
@@ -252,6 +259,7 @@ public class ShowScore extends HttpServlet{
 		out.print("Welcome!  "+request.getAttribute("chineseName")+"<br>");
 		displayScores(request, response);//and alert if user has some exam not taken
 		displayLogoutPage(request, response);
+		displayCounter(request, response);
 		out.println("</body></html>");
 	}
 	/**
@@ -308,6 +316,14 @@ public class ShowScore extends HttpServlet{
     	PrintWriter out = response.getWriter();
 		out.println ("Welcome 游客~！<br>");
 		out.println ("想看更多信息就去登录吧！~<br>");
+	}
+	private void displayCounter(HttpServletRequest request, HttpServletResponse response) throws IOException{
+    	PrintWriter out = response.getWriter();
+    	ServletContext context= getServletContext();
+    	int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
+		int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
+		int counter_total=counter_login+counter_visitor;
+		out.println ("站点统计：	总访问量："+counter_total+",登录人数："+counter_login+",游客人数："+counter_visitor);
 	}
 	private void displayGoToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException{
     	PrintWriter out = response.getWriter();
