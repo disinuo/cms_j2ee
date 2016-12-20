@@ -47,45 +47,51 @@ public class ShowScore extends HttpServlet{
 				}
 			}
 		}
- 		if(session==null){//has a session
+ 		if(session==null){// Not has a session
  			String id_input=request.getParameter("id");
+//=============  1.Visitor ===========================
  			if(id_input==null){//not login
-				response.sendRedirect(request.getContextPath()+"/Login");	
+				displayVisitor(request, response);
+				displayGoToLogin(request,response);
+//====================================================	
  			}else{
  				request.setAttribute("id", id_input);
+//===============2.first time log in ======================
 	 			if(userIDIfExist(request,response)){
 	 	 			String id=(String)request.getAttribute("id");
 	 	 			setInfo(request, response);
-	 				boolean isLogin = (id==null)? false:true;
-	 				if(isLogin){//then create a session
-	 					session=request.getSession(true);
-	 					session.setAttribute("id", request.getAttribute("id"));
-	 					session.setAttribute("type", request.getAttribute("type"));
-	 					if(login_id_cookie!=null){//has a loginID cookie
-	 						if(!login_id_cookie.getValue().equals(id)){//not same
-	 							//then update the cookie
-	 							addUserIDCookie(response,id_input);
-	 						}					
-	 					}else{//does not have a loginID cookie
-	 						addUserIDCookie(response,id_input);
-	 					}
-	 					display(request, response);
-	 				}
-	 			}else {displayNotExist(request, response);}
+	 				//then create a session
+ 					session=request.getSession(true);
+ 					session.setAttribute("id", request.getAttribute("id"));
+ 					session.setAttribute("type", request.getAttribute("type"));
+ 					if(login_id_cookie!=null){//has a loginID cookie
+ 						if(!login_id_cookie.getValue().equals(id)){//not same
+ 							//then update the cookie
+ 							addUserIDCookie(response,id_input);
+ 						}					
+ 					}else{//does not have a loginID cookie
+ 						addUserIDCookie(response,id_input);
+ 					}
+ 					display(request, response);
+//=====================================================	
+//==============3.user not exist ======================
+	 			}else {
+	 				displayNotExist(request, response);
+	 				displayGoToLogin(request,response);
+//=====================================================	
+	 			}
  			}
-			
+//==============4.already log in ======================
 		}else{//already has a session
-//			session.invalidate();
 			System.out.println("Alreay has a session");
 			String id=(String)session.getAttribute("id");
 			String type=(String)session.getAttribute("type");
 			request.setAttribute("id", id);
 			request.setAttribute("type", type);
 			setInfo(request, response);
-//			displayAlreadyIn(request,response);
 			display(request,response);
 		}
-
+//====================================================	
     }
 	private void addUserIDCookie(HttpServletResponse response,String id) {
 		Cookie login_id_cookie=new Cookie("id",id);
@@ -145,42 +151,6 @@ public class ShowScore extends HttpServlet{
 			}
 		}
     }
-    /**
-	 * get courses that the user choosed 
-	 * Attribute name: course_chosen
-	 * @param request
-	 * @param response
-	 * @throws IOException
-	 */
-	private void getCoursesChosen(HttpServletRequest request, HttpServletResponse response) throws IOException{
-		String id=(String)request.getAttribute("id");
-		String sql="SELECT cid,name as cname FROM selectC,course WHERE cid = course.id AND sid = ?";
-		ResultSet rs=handlePreparedStatement(sql,id);
-		ArrayList<Course> courses=new ArrayList<Course>();
-		try {
-			if(rs!=null){
-				while(rs.next()){
-					Course course=new Course();
-					course.setId(rs.getInt("cid"));
-					course.setName(rs.getString("cname"));
-					courses.add(course);
-				}
-			}else{
-				//TODO handle resultSet is null
-				System.out.println( "getCoursesChosen  resultSet is null");
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}finally {
-			try {
-				rs.close();
-				closeResource();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-		request.setAttribute("course_chosen", courses);
-	}
 	/**
 	 * get all the exams that the user should take
  	 * Attribute name: exam_chosen
@@ -253,7 +223,6 @@ public class ShowScore extends HttpServlet{
 					score.setScore(rs.getInt("Score"));
 					scores.add(score);
 				}
-
 			}else{
 				//TODO handle resultSet is null
 				System.out.println( "getScores  resultSet is null");
@@ -293,12 +262,13 @@ public class ShowScore extends HttpServlet{
 	 */
 	private void displayScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		PrintWriter out = response.getWriter();
-
+//		get the exams that the user should take into request.attribute
 		getExamsChosen(request, response);
 		ArrayList<Exam> exams_chosen=(ArrayList<Exam>)request.getAttribute("exam_chosen");
 		if(exams_chosen==null||exams_chosen.size()<1){
-			out.println ("<p style='color:#198821'>您没有考试~</p>");
+			out.println ("<p style='color:#198821'>您没有需要参加的考试~</p>");
 		}else{
+//			get the scores of exams that the user took, into request.attribute
 			getScores(request, response);
 			ArrayList<Score> scores=(ArrayList<Score>)request.getAttribute("scores");
 			out.println("我的成绩:  <br>");
@@ -328,15 +298,23 @@ public class ShowScore extends HttpServlet{
 				displayExamNotTakenAlert(request, response);	
 			}
 		}
-		
 	}
     private void displayNotExist(HttpServletRequest request, HttpServletResponse response) throws IOException{
     	PrintWriter out = response.getWriter();
 		out.println ("对不起该账号不存在！<br>");
 	}
-	private void displayAlreadyIn(HttpServletRequest request, HttpServletResponse response) throws IOException{
+	//special page for the visitor
+	private void displayVisitor(HttpServletRequest request, HttpServletResponse response) throws IOException{
     	PrintWriter out = response.getWriter();
-		out.println ("您已经登录！<br>");
+		out.println ("Welcome 游客~！<br>");
+		out.println ("想看更多信息就去登录吧！~<br>");
+	}
+	private void displayGoToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException{
+    	PrintWriter out = response.getWriter();
+    	out.println("<form method='GET' action='" + response.encodeURL(request.getContextPath() + "/Login") + "'>");
+		out.println("</p>");
+		out.println("<input type='submit' name='login' value='go to login'>");
+		out.println("</form>");
 	}
 	//alert user has some exam that should've taken
 	private void displayExamNotTakenAlert(HttpServletRequest request, HttpServletResponse response) throws IOException{
@@ -405,7 +383,11 @@ public class ShowScore extends HttpServlet{
 		}
 		return null;
 	}
-	
+	/**
+     * handle the sql with dynamic parameter
+     * no parameter
+     * @param sql
+     */
 	private ResultSet handlePreparedStatement(String sql){
 		try {
 			cnn = ds.getConnection();
@@ -437,17 +419,10 @@ public class ShowScore extends HttpServlet{
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		processRequest(request, response);
-//		System.out.println("get");
 	}
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		processRequest(request, response);
-//		System.out.println("post");
 	}
     /**
      * initialize the datasource ***************************
@@ -462,9 +437,6 @@ public class ShowScore extends HttpServlet{
 			e.printStackTrace();
 		}
     }
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
     public ShowScore() {
         super();
     }
