@@ -15,17 +15,13 @@ import javax.servlet.http.HttpSession;
 
 @WebServlet("/Login")
 public class Login extends HttpServlet {
-	private int counter_visitor=0;
-	private int counter_login=0;
+	
     public Login() {
         super();
     }
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html; charset=UTF-8");
 		
-		ServletContext Context= getServletContext();
-		counter_visitor=Integer.parseInt((String)Context.getAttribute("counter_visitor"));
-		counter_login=Integer.parseInt((String)Context.getAttribute("counter_login"));
 
 		HttpSession session = request.getSession(false);
 		System.out.println("**********************");
@@ -50,6 +46,15 @@ public class Login extends HttpServlet {
 		doGet(request, response);
 	}
 	private void display(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		PrintWriter out = response.getWriter();
+		
+		out.println("<html><title>CMS|Login</title><body>");
+		displayTextField(request, response);
+		displayVisitorLogin(request, response);
+		displayCounter(request, response);
+		out.println("</body></html>");
+	}
+	private void displayTextField(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		String id="";
 		Cookie[] cookies=request.getCookies();
 		if(cookies!=null){
@@ -61,7 +66,6 @@ public class Login extends HttpServlet {
 			}
 		}
 		PrintWriter out = response.getWriter();
-		out.println("<html><title>CMS|Login</title><body>");
 		out.println("<form  method='post' action='/cms_j2ee/ShowScore'>");		
 		out.println("<label for='id'>name</label>");		
 		out.println("<input id='d' type='text' name='id' value="+id+">");
@@ -69,15 +73,21 @@ public class Login extends HttpServlet {
 		out.println("<input id='password' type='password' name='password' value=''>");
 		out.println("<input type='submit' name='btn' value='Login'>");
 		out.println("</form>");
-		
+
+	}
+	private void displayVisitorLogin(HttpServletRequest request, HttpServletResponse response) throws IOException{
+    	PrintWriter out = response.getWriter();
 		out.println("<form method='post' action='/cms_j2ee/ShowScore'>");
 		out.println("<input type='submit' name='btn' value='Login_as_a_visitor'>");
 		out.println("</form>");
-		out.println("<p>站点统计：</p>");
-		out.println("<p style='size:8px'>总访问量："+(counter_login+counter_visitor));
-		out.println(",登录人数："+counter_login);
-		out.println(",游客人数："+counter_visitor);
-		out.println("</body></html>");
-	}
 
+	}
+	private void displayCounter(HttpServletRequest request, HttpServletResponse response) throws IOException{
+    	PrintWriter out = response.getWriter();
+    	ServletContext context= getServletContext();
+    	int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
+		int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
+		int counter_total=counter_login+counter_visitor;
+		out.println ("<p style='font-size:10px'>站点统计：	总访问量："+counter_total+",登录人数："+counter_login+",游客人数："+counter_visitor+"</p>");
+	}
 }

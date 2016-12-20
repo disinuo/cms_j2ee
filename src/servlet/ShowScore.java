@@ -56,8 +56,6 @@ public class ShowScore extends HttpServlet{
  			if(id_input==null){//not login
  				context.setAttribute("counter_visitor", Integer.toString(++counter_visitor));
 				displayVisitor(request, response);
-				displayGoToLogin(request,response);
-				displayCounter(request, response);
 //====================================================	
  			}else{
  				request.setAttribute("id", id_input);
@@ -78,13 +76,11 @@ public class ShowScore extends HttpServlet{
  					}else{//does not have a loginID cookie
  						addUserIDCookie(response,id_input);
  					}
- 					display(request, response);
+ 					displayNormal(request, response);
 //=====================================================	
 //==============3.user not exist ======================
 	 			}else {
 	 				displayNotExist(request, response);
-	 				displayGoToLogin(request,response);
-					displayCounter(request, response);
 //=====================================================	
 	 			}
  			}
@@ -96,7 +92,7 @@ public class ShowScore extends HttpServlet{
 			request.setAttribute("id", id);
 			request.setAttribute("type", type);
 			setInfo(request, response);
-			display(request,response);
+			displayNormal(request,response);
 		}
 //====================================================	
     }
@@ -253,7 +249,8 @@ public class ShowScore extends HttpServlet{
 /*****************************************************************************************
  * Methods about display :
  */
-	private void display(HttpServletRequest request, HttpServletResponse response) throws IOException{
+	// the normal situation
+	private void displayNormal(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		PrintWriter out = response.getWriter();
 		out.println("<html><title>CMS|showScore</title><body><br>");
 		out.print("Welcome!  "+request.getAttribute("chineseName")+"<br>");
@@ -262,6 +259,25 @@ public class ShowScore extends HttpServlet{
 		displayCounter(request, response);
 		out.println("</body></html>");
 	}
+	//special page for the visitor
+	private void displayVisitor(HttpServletRequest request, HttpServletResponse response) throws IOException{
+    	PrintWriter out = response.getWriter();
+    	out.println("<html><title>CMS|visitor</title><body><br>");
+    	out.println ("Welcome 游客~！<br>");
+		out.println ("想看更多信息就去登录吧！~<br>");
+		displayGoToLogin(request,response);
+		displayCounter(request, response);
+		out.println("</body></html>");
+	}
+    private void displayNotExist(HttpServletRequest request, HttpServletResponse response) throws IOException{
+    	PrintWriter out = response.getWriter();
+    	out.println("<html><title>CMS|Wrong ID</title><body><br>");
+		out.println ("对不起该账号不存在！<br>");
+		displayGoToLogin(request,response);
+		displayCounter(request, response);
+		out.println("</body></html>");
+	}
+
 	/**
 	 * Attribute name: exams_not_taken
 	 * @param request
@@ -307,23 +323,13 @@ public class ShowScore extends HttpServlet{
 			}
 		}
 	}
-    private void displayNotExist(HttpServletRequest request, HttpServletResponse response) throws IOException{
-    	PrintWriter out = response.getWriter();
-		out.println ("对不起该账号不存在！<br>");
-	}
-	//special page for the visitor
-	private void displayVisitor(HttpServletRequest request, HttpServletResponse response) throws IOException{
-    	PrintWriter out = response.getWriter();
-		out.println ("Welcome 游客~！<br>");
-		out.println ("想看更多信息就去登录吧！~<br>");
-	}
 	private void displayCounter(HttpServletRequest request, HttpServletResponse response) throws IOException{
     	PrintWriter out = response.getWriter();
     	ServletContext context= getServletContext();
     	int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
 		int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
 		int counter_total=counter_login+counter_visitor;
-		out.println ("站点统计：	总访问量："+counter_total+",登录人数："+counter_login+",游客人数："+counter_visitor);
+		out.println ("<p style='font-size:10px'>站点统计：	总访问量："+counter_total+",登录人数："+counter_login+",游客人数："+counter_visitor+"</p>");
 	}
 	private void displayGoToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException{
     	PrintWriter out = response.getWriter();
