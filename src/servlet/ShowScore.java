@@ -28,6 +28,7 @@ import model.Score;
 
 /**
  * Servlet implementation class DatabaseHandler
+ * Attribute name: id,type(the status of the user.eg:student)
  */
 @WebServlet("/ShowScore")
 public class ShowScore extends HttpServlet{
@@ -87,8 +88,6 @@ public class ShowScore extends HttpServlet{
     }
 	private void addUserIDCookie(HttpServletResponse response,String id) {
 		Cookie login_id_cookie=new Cookie("id",id);
-//TODO		!!!!WHY HERE is RESPOSE add cookie.
-		//but forward when getting cookie is from the request!
 		response.addCookie(login_id_cookie);
 
 	}
@@ -124,6 +123,7 @@ public class ShowScore extends HttpServlet{
     }
     /**
      * set the information of the user
+     * Attribute name: chineseName
      */
     private void setInfo(HttpServletRequest request, HttpServletResponse response) throws  IOException {
 		String type=(String)request.getAttribute("type");
@@ -204,7 +204,6 @@ public class ShowScore extends HttpServlet{
 					exams.add(exam);
 				}
 			}else{
-				//TODO handle resultSet is null
 				System.out.println( "getExamsChosen  resultSet is null");
 			}
 		} catch (SQLException e) {
@@ -228,7 +227,15 @@ public class ShowScore extends HttpServlet{
 	 */
 	private void getScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		String id=(String)request.getAttribute("id");
-		String sql="SELECT exam.id as examID,exam.name as examName,exam.date as examDate,course.id as courseID,course.name as courseName,score.score as score FROM exam,course,score WHERE score.eid=exam.id AND course.id=exam.cid AND score.sid =?";
+		String sql="SELECT exam.id as examID,"
+				+ "exam.name as examName,"
+				+ "exam.date as examDate,"
+				+ "course.id as courseID,"
+				+ "course.name as courseName,"
+				+ "score.score as score "
+				+ "FROM exam,course,score "
+				+ "WHERE score.eid=exam.id "
+				+ "AND course.id=exam.cid AND score.sid =?";
 		System.out.println("getScores: "+sql+id);
 		ResultSet rs=handlePreparedStatement(sql,id);
 		ArrayList<Score> scores=new ArrayList<Score>();
@@ -271,45 +278,56 @@ public class ShowScore extends HttpServlet{
  */
 	private void display(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		PrintWriter out = response.getWriter();
-			out.print("Welcome!  "+request.getAttribute("chineseName")+"<br>");
-			displayScores(request, response);//and alert if user has some exam not taken
-			
-			displayLogoutPage(request, response);
+		out.println("<html><title>CMS|showScore</title><body><br>");
+		out.print("Welcome!  "+request.getAttribute("chineseName")+"<br>");
+		displayScores(request, response);//and alert if user has some exam not taken
+		displayLogoutPage(request, response);
+		out.println("</body></html>");
 	}
+	/**
+	 * Attribute name: exams_not_taken
+	 * @param request
+	 * @param response
+	 * @throws IOException
+	 */
 	private void displayScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
-		getScores(request, response);
-		ArrayList<Score> scores=(ArrayList<Score>)request.getAttribute("scores");
 		PrintWriter out = response.getWriter();
-		out.println("<html><body><br>");
-		out.println("我的成绩:  <br>");
-		out.println("<table><thead><td>课程</td><td>考试</td><td>分数</td></thead>");
-		for (Score score:scores) {
-			out.println("<tr><td>"+score.getCourseName()+"</td><td>"+score.getExamName()+"</td><td>"+score.getScore()+"</td></tr>");
-		}
-		out.println("</table>");
-//		checkout whether the user has some exam didn't take
+
 		getExamsChosen(request, response);
 		ArrayList<Exam> exams_chosen=(ArrayList<Exam>)request.getAttribute("exam_chosen");
-		ArrayList<Exam> exams_not_taken=new ArrayList<Exam>();
-		//get all the examIDs that user should take
-		//compare the examIDs. `should take` vs `have taken`
-		for(Exam exam:exams_chosen){
-			boolean taken=false;
-			for(Score score:scores){
-				if(exam.getId()==score.getExamID()){
-					taken=true;
-					break;
+		if(exams_chosen==null||exams_chosen.size()<1){
+			out.println ("<p style='color:#198821'>您没有考试~</p>");
+		}else{
+			getScores(request, response);
+			ArrayList<Score> scores=(ArrayList<Score>)request.getAttribute("scores");
+			out.println("我的成绩:  <br>");
+			out.println("<table><thead><td>课程</td><td>考试</td><td>分数</td></thead>");
+			for (Score score:scores) {
+				out.println("<tr><td>"+score.getCourseName()+"</td><td>"+score.getExamName()+"</td><td>"+score.getScore()+"</td></tr>");
+			}
+			out.println("</table>");
+//			checkout whether the user has some exam didn't take
+			ArrayList<Exam> exams_not_taken=new ArrayList<Exam>();
+			//get all the examIDs that user should take
+			//compare the examIDs. `should take` vs `have taken`
+			for(Exam exam:exams_chosen){
+				boolean taken=false;
+				for(Score score:scores){
+					if(exam.getId()==score.getExamID()){
+						taken=true;
+						break;
+					}
+				}
+				if(!taken){
+					exams_not_taken.add(exam);
 				}
 			}
-			if(!taken){
-				exams_not_taken.add(exam);
+			if(exams_not_taken.size()>0){
+				request.setAttribute("exams_not_taken", exams_not_taken);
+				displayExamNotTakenAlert(request, response);	
 			}
 		}
-		if(exams_not_taken.size()>0){
-			request.setAttribute("exams_not_taken", exams_not_taken);
-			displayExamNotTakenAlert(request, response);	
-		}
-		out.println("</body></html>");
+		
 	}
     private void displayNotExist(HttpServletRequest request, HttpServletResponse response) throws IOException{
     	PrintWriter out = response.getWriter();
@@ -336,7 +354,6 @@ public class ShowScore extends HttpServlet{
 		out.println("</p>");
 		out.println("<input type='submit' name='logout' value='logout'>");
 		out.println("</form>");
-		out.println("</body></html>");
 	}
 /*****************************************************************************************
  */
@@ -356,19 +373,18 @@ public class ShowScore extends HttpServlet{
      * @param param
      */
 	private ResultSet handlePreparedStatement(String sql,List<String> param){
-		ResultSet rs=null;
 		try {
 			cnn = ds.getConnection();
 			pstmt=cnn.prepareStatement(sql);
 			for(int i=0,len=param.size();i<len;i++){
 				pstmt.setString(i+1, param.get(i));
 			}
-			rs=pstmt.executeQuery();
+			return pstmt.executeQuery();
 		} catch (SQLException e) {
 			System.out.print("HandlePreparedStatement Method -- >=2 parameters Error:");
 			e.printStackTrace();
 		}
-		return rs;
+		return null;
 	}
 	/**
      * handle the sql with dynamic parameter
@@ -381,8 +397,7 @@ public class ShowScore extends HttpServlet{
 			cnn = ds.getConnection();
 			pstmt=cnn.prepareStatement(sql);
 			pstmt.setString(1, param);	
-			ResultSet rs=pstmt.executeQuery();
-			return rs;
+			return pstmt.executeQuery();
 		} catch (SQLException e) {
 			System.out.print("HandlePreparedStatement Method --1 parameter Error:");
 			e.printStackTrace();
@@ -394,8 +409,7 @@ public class ShowScore extends HttpServlet{
 		try {
 			cnn = ds.getConnection();
 			pstmt=cnn.prepareStatement(sql);
-			ResultSet rs=pstmt.executeQuery(sql);
-			return rs;
+			return pstmt.executeQuery(sql);
 		} catch (SQLException e) {
 			System.out.print("HandlePreparedStatement Method --no parameter Error:");
 			e.printStackTrace();
@@ -459,7 +473,6 @@ public class ShowScore extends HttpServlet{
 	private Context ctx; 
 	private DataSource ds;
 	private Connection cnn;
-	private Statement stmt;
 	private PreparedStatement pstmt;
 
 }

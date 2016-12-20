@@ -35,19 +35,21 @@ public class Login extends HttpServlet {
 		}
 		String ifLogout=request.getParameter("logout");
 		if(ifLogout!=null){
-			System.out.println("%%%%%%%%");
-			System.out.println("loging out");
-			System.out.println("%%%%%%%%");
+			System.out.println("logging out");
 			if(session!=null){
 				session.invalidate();
 				session=null;
 			}
 		}
+//		RequestDispatcher dispatcher =request.getRequestDispatcher("/user/login.html?id="+idCookie);
+//		dispatcher.forward(request, response);
+
 		response.sendRedirect(request.getContextPath()+"/user/login.html?id="+idCookie);
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//TODO
+		System.out.println("here is Login's doPost method!");
+		doGet(request, response);
 	}
 
 }
