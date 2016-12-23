@@ -53,46 +53,54 @@ public class ShowScore extends HttpServlet{
  		if(session==null){// Not has a session
  			String id_input=request.getParameter("id");
 //=============  1.Visitor ===========================
- 			if(id_input==null){//not login
+			if(id_input==null){//not login
+				//to avoid the visitor refresh the page,and the number of visitor keep increasing.So create a session for him
+				session=request.getSession(true);
  				context.setAttribute("counter_visitor", Integer.toString(++counter_visitor));
 				displayVisitor(request, response);
 //====================================================	
  			}else{
  				request.setAttribute("id", id_input);
-//===============2.first time log in ======================
+ 				//===============2.first time log in ======================
 	 			if(userIDIfExist(request,response)){
 	 				context.setAttribute("counter_login", Integer.toString(++counter_login));
 	 	 			String id=(String)request.getAttribute("id");
 	 	 			setInfo(request, response);
 	 				//then create a session
- 					session=request.getSession(true);
- 					session.setAttribute("id", request.getAttribute("id"));
- 					session.setAttribute("type", request.getAttribute("type"));
- 					if(login_id_cookie!=null){//has a loginID cookie
- 						if(!login_id_cookie.getValue().equals(id)){//not same
- 							//then update the cookie
- 							addUserIDCookie(response,id_input);
- 						}					
- 					}else{//does not have a loginID cookie
- 						addUserIDCookie(response,id_input);
- 					}
- 					displayNormal(request, response);
-//=====================================================	
-//==============3.user not exist ======================
+					session=request.getSession(true);
+					session.setAttribute("id", request.getAttribute("id"));
+					session.setAttribute("type", request.getAttribute("type"));
+					if(login_id_cookie!=null){//has a loginID cookie
+						if(!login_id_cookie.getValue().equals(id)){//not same
+							//then update the cookie
+							addUserIDCookie(response,id_input);
+						}					
+					}else{//does not have a loginID cookie
+						addUserIDCookie(response,id_input);
+					}
+					displayNormal(request, response);
+	//=====================================================	
+	//==============3.user not exist ======================
 	 			}else {
 	 				displayNotExist(request, response);
-//=====================================================	
+	//=====================================================	
 	 			}
  			}
-//==============4.already log in ======================
+
 		}else{//already has a session
-			System.out.println("Alreay has a session");
-			String id=(String)session.getAttribute("id");
-			String type=(String)session.getAttribute("type");
-			request.setAttribute("id", id);
-			request.setAttribute("type", type);
-			setInfo(request, response);
-			displayNormal(request,response);
+ 			String id_input=request.getParameter("id");
+			if(id_input==null){//a visitor with a session
+				displayVisitor(request, response);
+			}else{
+	//==============4.already log in ======================
+				String id=(String)session.getAttribute("id");
+				String type=(String)session.getAttribute("type");
+				request.setAttribute("id", id);
+				request.setAttribute("type", type);
+				setInfo(request, response);
+				displayNormal(request,response);
+			}
+			
 		}
 //====================================================	
     }
@@ -330,7 +338,7 @@ public class ShowScore extends HttpServlet{
     	int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
 		int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
 		int counter_total=counter_login+counter_visitor;
-		out.println ("<p style='font-size:10px'>站点统计：	总访问量："+counter_total+",登录人数："+counter_login+",游客人数："+counter_visitor+"</p>");
+		out.println ("<p style='font-size:10px'>站点统计：	在线人数："+counter_total+",已登录："+counter_login+",游客："+counter_visitor+"</p>");
 	}
 	private void displayGoToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException{
     	PrintWriter out = response.getWriter();

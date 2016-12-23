@@ -47,10 +47,11 @@ public class Login extends HttpServlet {
 			display(request, response);		
 		}
 		if(request.getParameter("logout_visitor")!=null){
-			if(session==null){//that's a visitor logging out
+			if(session!=null){//that's a visitor logging out
 				int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
 				context.setAttribute("counter_visitor", Integer.toString(--counter_visitor));
-
+				session.invalidate();
+				session=null;
 			}
 			display(request, response);		
 		}
