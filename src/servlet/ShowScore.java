@@ -267,6 +267,7 @@ public class ShowScore extends HttpServlet{
 		out.println ("想看更多信息就去登录吧！~<br>");
 		displayGoToLogin(request,response);
 		displayCounter(request, response);
+		
 		out.println("</body></html>");
 	}
     private void displayNotExist(HttpServletRequest request, HttpServletResponse response) throws IOException{
