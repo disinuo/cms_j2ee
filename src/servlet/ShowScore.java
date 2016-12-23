@@ -333,9 +333,9 @@ public class ShowScore extends HttpServlet{
 	}
 	private void displayGoToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException{
     	PrintWriter out = response.getWriter();
-    	out.println("<form method='GET' action='" + response.encodeURL(request.getContextPath() + "/Login") + "'>");
+    	out.println("<form method='POST' action='" + response.encodeURL(request.getContextPath() + "/Login") + "'>");
 		out.println("</p>");
-		out.println("<input type='submit' name='login' value='go to login'>");
+		out.println("<input type='submit' name='logout_visitor' value='go to login'>");//log out as a visitor
 		out.println("</form>");
 	}
 	//alert user has some exam that should've taken
@@ -351,7 +351,7 @@ public class ShowScore extends HttpServlet{
 	}
 	public void displayLogoutPage(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		PrintWriter out = response.getWriter();
-		out.println("<form method='GET' action='" + response.encodeURL(request.getContextPath() + "/Login") + "'>");
+		out.println("<form method='POST' action='" + response.encodeURL(request.getContextPath() + "/Login") + "'>");
 		out.println("</p>");
 		out.println("<input type='submit' name='logout' value='logout'>");
 		out.println("</form>");

@@ -11,7 +11,6 @@ import javax.servlet.ServletContextAttributeListener;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
-import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
 /**
@@ -19,18 +18,15 @@ import javax.servlet.http.HttpSessionListener;
  *
  */
 @WebListener
-public class CounterListener implements  
+public class VisitorCounterListener implements  
 ServletContextListener, ServletContextAttributeListener,HttpSessionListener {
-	int counter_visitor;
-	int counter_login;
-	int type_num=2;//the type of user
-	String counterFilePath= "/Users/disinuo/git/cms_j2ee/WebContent/counter.txt";
+	int counter;
+	String counterFilePath= "/Users/disinuo/git/cms_j2ee/WebContent/counter_visitor.txt";
     /**
      * Default constructor. 
      */
-    public CounterListener() {
-        // TODO Auto-generated constructor stub
-    }
+    public VisitorCounterListener() {}
+    
     public void attributeReplaced(ServletContextAttributeEvent scae) {
     	System.out.println("ServletContextattribute replaced");
     	writeCounter(scae);
@@ -41,30 +37,25 @@ ServletContextListener, ServletContextAttributeListener,HttpSessionListener {
      */
     public void contextInitialized(ServletContextEvent cse) {
     	try {
-    		System.out.println("Reading Start"); 		
+    		System.out.println("visiter listener Reading Start"); 		
     		BufferedReader reader = new BufferedReader(new FileReader(counterFilePath));
-    		
-    		counter_login = Integer.parseInt( reader.readLine() ); 
-    		counter_visitor = Integer.parseInt( reader.readLine() );
+    		counter = Integer.parseInt( reader.readLine() );
     		reader.close();
     	}catch (Exception e) {
     		System.out.println("contextInitialized error!!");
     		System.out.println(e);
     	}
     	ServletContext servletContext= cse.getServletContext();
-    	servletContext.setAttribute("counter_visitor", Integer.toString(counter_visitor));
-    	servletContext.setAttribute("counter_login", Integer.toString(counter_login));
+    	servletContext.setAttribute("counter_visitor", Integer.toString(counter));
     	System.out.println("listener initialized");
     }
     
     synchronized void writeCounter(ServletContextAttributeEvent scae) {
     	ServletContext servletContext= scae.getServletContext();
-    	counter_login = Integer.parseInt((String) servletContext.getAttribute("counter_login"));
-    	counter_visitor = Integer.parseInt((String) servletContext.getAttribute("counter_visitor"));
+    	counter = Integer.parseInt((String) servletContext.getAttribute("counter_visitor"));
     	try {
     		BufferedWriter writer = new BufferedWriter(new FileWriter(counterFilePath));
-    		writer.write(Integer.toString(counter_login)+"\n");
-    		writer.write(Integer.toString(counter_visitor)+"\n");
+    		writer.write(Integer.toString(counter)+"\n");
     		writer.close();
     		System.out.println("Writing");
     	}catch (Exception e) {

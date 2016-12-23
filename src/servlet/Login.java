@@ -21,29 +21,40 @@ public class Login extends HttpServlet {
     }
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html; charset=UTF-8");
-		
-
 		HttpSession session = request.getSession(false);
-		System.out.println("**********************");
 		System.out.println("in Login servlet");
-
-		System.out.println("*************************");
-		display(request, response);
-		String ifLogout=request.getParameter("logout");
-		if(ifLogout!=null){
-			System.out.println("logging out");
-			if(session!=null){
-				session.invalidate();
-				session=null;
-			}
+		if(session==null){
+			display(request, response);			
+		}else{
+			response.sendRedirect(request.getContextPath() + "/ShowScore");
 		}
-//		RequestDispatcher dispatcher =request.getRequestDispatcher("/user/login.html?id="+idCookie);
-//		dispatcher.forward(request, response);
+		
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		response.setContentType("text/html; charset=UTF-8");
 		System.out.println("here is Login's doPost method!");
-		doGet(request, response);
+		HttpSession session = request.getSession(false);
+		ServletContext context= getServletContext();
+		if(request.getParameter("logout")!=null){
+			System.out.println("logging out");
+			if(session!=null){//that's a login user logging out
+				int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
+				context.setAttribute("counter_login", Integer.toString(--counter_login));
+				session.invalidate();
+				session=null;
+			}
+			display(request, response);		
+		}
+		if(request.getParameter("logout_visitor")!=null){
+			if(session==null){//that's a visitor logging out
+				int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
+				context.setAttribute("counter_visitor", Integer.toString(--counter_visitor));
+
+			}
+			display(request, response);		
+		}
+
 	}
 	private void display(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		PrintWriter out = response.getWriter();
@@ -88,6 +99,6 @@ public class Login extends HttpServlet {
     	int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
 		int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
 		int counter_total=counter_login+counter_visitor;
-		out.println ("<p style='font-size:10px'>站点统计：	总访问量："+counter_total+",登录人数："+counter_login+",游客人数："+counter_visitor+"</p>");
+		out.println ("<p style='font-size:10px'>站点统计：	在线人数："+counter_total+",已登录："+counter_login+",游客："+counter_visitor+"</p>");
 	}
 }
