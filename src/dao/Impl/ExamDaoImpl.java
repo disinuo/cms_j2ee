@@ -45,6 +45,36 @@ public class ExamDaoImpl implements ExamDao{
 	}
 
 	@Override
+	public ArrayList<Exam> getTakenExams(String studentId) {
+		String sql="SELECT exam.id as examID,exam.name as examName,exam.date as examDate,course.id as courseID,course.name as courseName FROM exam,course,score WHERE score.eid=exam.id AND course.id=exam.cid AND score.sid =?";
+		ResultSet rs=daoHelper.handlePreparedStatement(sql,studentId);
+		ArrayList<Exam> exams=new ArrayList<Exam>();
+		try {
+//			System.out.print("in getSCores method resultSet: "+rs);
+			if(rs!=null){
+				while(rs.next()){
+					Exam exam=new Exam();
+					exam.setId(rs.getInt("examID"));
+					exam.setName(rs.getString("examName"));
+					exam.setDate(rs.getString("examDate"));
+					exam.setCourseID(rs.getInt("courseID"));
+					exam.setCourseName(rs.getString("courseName"));
+					exams.add(exam);
+				}
+			}else{
+				//TODO handle resultSet is null
+				System.out.println( "getTakenExams  resultSet is null");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally {
+			daoHelper.closeResultSet(rs);
+			daoHelper.closeStatement_Connection();
+		}
+		return exams;
+	}
+
+	@Override
 	public ArrayList<Exam> getAllExams() {
 		// TODO Auto-generated method stub
 		return null;

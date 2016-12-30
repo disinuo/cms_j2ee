@@ -3,20 +3,22 @@ package service;
 import java.util.ArrayList;
 
 import model.Exam;
-import model.Score;
 
-public interface ShowScoreService {
+public interface ExamService {
+	
 	/**
-	 * get scores that the current user has taken
+	 * get all exams that the user chosen
 	 * @param studentId
 	 * @return
 	 */
-	public ArrayList<Score> getTakenScores(String studentId);
+	public ArrayList<Exam> getChosenExams(String studentId);
 	/**
-	 * get exams that the student should have taken
+	 * get exams that should have taken but not
+	 * return null if all have been taken
 	 * @param studentId
 	 * @return
 	 */
 	public ArrayList<Exam> getNotTakenExams(String studentId);
+	
 
 }

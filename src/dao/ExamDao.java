@@ -11,6 +11,8 @@ public interface ExamDao {
 	 * @return
 	 */
 	public ArrayList<Exam> getChosenExams(String studentId);
+	
+	public ArrayList<Exam> getTakenExams(String studentId);
 	/**
 	 * get all exams in the database
 	 * @return

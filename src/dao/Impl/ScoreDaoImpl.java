@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import dao.DaoHelper;
 import dao.ScoreDao;
+import model.Exam;
 import model.Score;
 
 public class ScoreDaoImpl implements ScoreDao{
@@ -29,7 +30,6 @@ public class ScoreDaoImpl implements ScoreDao{
 				+ "FROM exam,course,score "
 				+ "WHERE score.eid=exam.id "
 				+ "AND course.id=exam.cid AND score.sid =?";
-		System.out.println("getScores: "+sql+studentId);
 		ResultSet rs=daoHelper.handlePreparedStatement(sql,studentId);
 		ArrayList<Score> scores=new ArrayList<Score>();
 		try {
@@ -57,6 +57,7 @@ public class ScoreDaoImpl implements ScoreDao{
 		}
 		return scores;
 	}
+
 
 	@Override
 	public ArrayList<Score> getAllScores() {

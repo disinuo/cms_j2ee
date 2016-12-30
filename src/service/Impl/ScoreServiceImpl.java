@@ -6,14 +6,14 @@ import dao.ScoreDao;
 import factory.DaoFactory;
 import model.Exam;
 import model.Score;
-import service.ShowScoreService;
+import service.ScoreService;
 
-public class ShowScoreServiceImpl implements ShowScoreService{
-	private static ShowScoreServiceImpl showScoreService=new ShowScoreServiceImpl();
+public class ScoreServiceImpl implements ScoreService{
+	private static ScoreServiceImpl showScoreService=new ScoreServiceImpl();
 	private ScoreDao scoreDao=DaoFactory.getScoreDao();
 	
-	private ShowScoreServiceImpl(){}
-	public static ShowScoreService getInstance(){
+	private ScoreServiceImpl(){}
+	public static ScoreService getInstance(){
 		return showScoreService;
 	}
 	@Override

@@ -7,7 +7,14 @@ public class Score {
 	private String courseName;
 	private int courseID;
 	private int score;
+	private int studentID;
 	
+	public int getStudentID() {
+		return studentID;
+	}
+	public void setStudentID(int studentID) {
+		this.studentID = studentID;
+	}
 	public int getExamID() {
 		return examID;
 	}

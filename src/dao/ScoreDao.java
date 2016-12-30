@@ -2,6 +2,7 @@ package dao;
 
 import java.util.ArrayList;
 
+import model.Exam;
 import model.Score;
 
 public interface ScoreDao {

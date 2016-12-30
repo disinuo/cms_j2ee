@@ -2,10 +2,7 @@ package servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -19,7 +16,8 @@ import javax.servlet.http.HttpSession;
 import factory.ServiceFactory;
 import model.Exam;
 import model.Score;
-import service.ShowScoreService;
+import service.ExamService;
+import service.ScoreService;
 import service.StudentService;
 import service.UserService;
 import tool.UserType;
@@ -36,7 +34,6 @@ public class ShowScoreServlet extends HttpServlet{
 		int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
 		int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
 		
-		System.out.println("the name input: "+request.getParameter("id"));
 		HttpSession session=request.getSession(false);
 		Cookie login_id_cookie=null;
 		Cookie[] cookies=request.getCookies();
@@ -48,6 +45,7 @@ public class ShowScoreServlet extends HttpServlet{
 				}
 			}
 		}
+	try {
  		if(session==null){// Not has a session
  			String id=request.getParameter("id");
 //=============  1.Visitor ===========================
@@ -55,19 +53,21 @@ public class ShowScoreServlet extends HttpServlet{
 				//to avoid the visitor refresh the page,and the number of visitor keep increasing.So create a session for him
 				session=request.getSession(true);
  				context.setAttribute("counter_visitor", Integer.toString(++counter_visitor));
-				displayVisitor(request, response);
+				context.getRequestDispatcher("/jsp/user/Visitor.jsp").forward(
+							request, response);
 //====================================================	
  			}else{
  				request.setAttribute("id", id);
  				//===============2.first time log in ======================
 	 			if(userIDIfExist(request,response)){
-	 				setUserType(request, response);
 	 				context.setAttribute("counter_login", Integer.toString(++counter_login));
+	 				setUserType(request, response);
 	 	 			setInfo(request, response);
 	 				//then create a session
 					session=request.getSession(true);
 					session.setAttribute("id", request.getAttribute("id"));
 					session.setAttribute("type", request.getAttribute("type"));
+					
 					if(login_id_cookie!=null){//has a loginID cookie
 						if(!login_id_cookie.getValue().equals(id)){//not same
 							//then update the cookie
@@ -80,7 +80,8 @@ public class ShowScoreServlet extends HttpServlet{
 	//=====================================================	
 	//==============3.user not exist ======================
 	 			}else {
-	 				displayNotExist(request, response);
+	 				context.getRequestDispatcher("/jsp/user/UserNotExist.jsp").forward(
+							request, response);
 	//=====================================================	
 	 			}
  			}
@@ -88,10 +89,11 @@ public class ShowScoreServlet extends HttpServlet{
 		}else{//already has a session
  			String id=request.getParameter("id");
 			if(id==null){//a visitor with a session
-				displayVisitor(request, response);
+				context.getRequestDispatcher("/jsp/user/Visitor.jsp").forward(
+						request, response);
 			}else{
 	//==============4.already log in ======================
-				String type=(String)session.getAttribute("type");
+				UserType type=(UserType)session.getAttribute("type");
 				request.setAttribute("id", id);
 				request.setAttribute("type", type);
 				setInfo(request, response);
@@ -99,6 +101,11 @@ public class ShowScoreServlet extends HttpServlet{
 			}
 			
 		}
+	} catch (ServletException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+
 //====================================================	
     }
 	private void addUserIDCookie(HttpServletResponse response,String id) {
@@ -141,14 +148,21 @@ public class ShowScoreServlet extends HttpServlet{
 	/**
 	 * get all the scores that the user gets
 	 * Attribute name: scores
+	 * Attribute name: if_has_exam_not_taken
 	 * @param request
 	 * @param response
 	 * @throws IOException
 	 */
 	private void getScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		String id=(String)request.getAttribute("id");		
-		ArrayList<Score> scores=showScoreService.getTakenScores(id);
+		ArrayList<Score> scores=scoreService.getTakenScores(id);
 		request.setAttribute("scores", scores);
+		ArrayList<Exam> notTakenExam=examService.getNotTakenExams(id);
+		request.setAttribute("exams_not_taken", notTakenExam);
+		System.out.println("not taken exams   "+notTakenExam.size());
+		if(notTakenExam.size()>0){
+			request.setAttribute("if_has_exam_not_taken", true);
+		}
 	}
 
 /*****************************************************************************************
@@ -194,29 +208,21 @@ public class ShowScoreServlet extends HttpServlet{
 	 * @throws IOException
 	 */
 	private void displayScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		getScores(request, response);
+
 		PrintWriter out = response.getWriter();
-//		get the exams that the user should take into request.attribute
-//		ArrayList<Exam> exams_chosen=(ArrayList<Exam>)request.getAttribute("exam_chosen");
-//		if(exams_chosen==null||exams_chosen.size()<1){
-//			out.println ("<p style='color:#198821'>您没有需要参加的考试~</p>");
-//		}else{
-//			get the scores of exams that the user took, into request.attribute
-			getScores(request, response);
-			ArrayList<Score> scores=(ArrayList<Score>)request.getAttribute("scores");
-			out.println("我的成绩:  <br>");
-			out.println("<table><thead><td>课程</td><td>考试</td><td>分数</td></thead>");
-			for (Score score:scores) {
-				out.println("<tr><td>"+score.getCourseName()+"</td><td>"+score.getExamName()+"</td><td>"+score.getScore()+"</td></tr>");
-			}
-			out.println("</table>");
+		ArrayList<Score> scores=(ArrayList<Score>)request.getAttribute("scores");
+		out.println("我的成绩:  <br>");
+		out.println("<table><thead><td>课程</td><td>考试</td><td>分数</td></thead>");
+		for (Score score:scores) {
+			out.println("<tr><td>"+score.getCourseName()+"</td><td>"+score.getExamName()+"</td><td>"+score.getScore()+"</td></tr>");
+		}
+		out.println("</table>");
 //			checkout whether the user has some exam didn't take
-//			ArrayList<Exam> exams_not_taken=new ArrayList<Exam>();
-//			
-//			if(exams_not_taken.size()>0){
-//				request.setAttribute("exams_not_taken", exams_not_taken);
-//				displayExamNotTakenAlert(request, response);	
-//			}
-//		}
+		Boolean if_has_exam_not_taken=(Boolean)request.getAttribute("if_has_exam_not_taken");
+		if(if_has_exam_not_taken!=null&&if_has_exam_not_taken){
+			displayExamNotTakenAlert(request, response);	
+		}
 	}
 	private void displayCounter(HttpServletRequest request, HttpServletResponse response) throws IOException{
     	PrintWriter out = response.getWriter();
@@ -273,7 +279,8 @@ public class ShowScoreServlet extends HttpServlet{
 /***********variables****************************************************************
  */
 	private StudentService studentService=ServiceFactory.getStudentService();
-	private ShowScoreService showScoreService=ServiceFactory.getShowScoreService();
+	private ScoreService scoreService=ServiceFactory.getScoreService();
+	private ExamService examService=ServiceFactory.getExamService();
 	private UserService userService=ServiceFactory.getUserService();
 
 }
