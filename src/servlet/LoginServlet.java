@@ -14,9 +14,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 @WebServlet("/Login")
-public class Login extends HttpServlet {
+public class LoginServlet extends HttpServlet {
 	
-    public Login() {
+    public LoginServlet() {
         super();
     }
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

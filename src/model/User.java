@@ -4,13 +4,6 @@ public abstract class User {
 	protected int id;
 	protected String password;
 	protected String userName;
-	
-	public User(int id, String password, String userName) {
-		super();
-		this.id = id;
-		this.password = password;
-		this.userName = userName;
-	}
 
 	public int getId() {
 		return id;

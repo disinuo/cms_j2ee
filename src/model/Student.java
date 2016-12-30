@@ -11,17 +11,7 @@ public class Student extends User implements Serializable{
 	private String major;
 	
 
-	public Student(int id, String password, String userName, String chineseName, String email, Sex sex, int grade,
-			int classNum, String major) {
-		super(id, password, userName);
-		this.chineseName = chineseName;
-		this.email = email;
-		this.sex = sex;
-		this.grade = grade;
-		this.classNum = classNum;
-		this.major = major;
-	}
-
+	
 
 	public String getChineseName() {
 		return chineseName;
