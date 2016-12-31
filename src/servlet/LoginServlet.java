@@ -23,6 +23,7 @@ public class LoginServlet extends HttpServlet {
 		response.setContentType("text/html; charset=UTF-8");
 		HttpSession session = request.getSession(false);
 		System.out.println("in Login servlet");
+		System.out.println(session);
 		if(session==null){
 			display(request, response);			
 		}else{
@@ -35,7 +36,6 @@ public class LoginServlet extends HttpServlet {
 		response.setContentType("text/html; charset=UTF-8");
 		System.out.println("here is Login's doPost method!");
 		HttpSession session = request.getSession(false);
-//		session.invalidate();
 		ServletContext context= getServletContext();
 		if(request.getParameter("logout")!=null){
 			System.out.println("logging out");

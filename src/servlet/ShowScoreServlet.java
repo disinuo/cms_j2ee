@@ -15,6 +15,7 @@ import javax.servlet.http.HttpSession;
 
 import factory.ServiceFactory;
 import model.Exam;
+import model.OnlineCounter;
 import model.Score;
 import service.ExamService;
 import service.ScoreService;
@@ -33,6 +34,9 @@ public class ShowScoreServlet extends HttpServlet{
 		ServletContext context= getServletContext();
 		int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
 		int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
+		
+		OnlineCounter counter=new OnlineCounter();
+		counter.setTotal(311);
 		
 		HttpSession session=request.getSession(false);
 		Cookie login_id_cookie=null;
@@ -53,7 +57,7 @@ public class ShowScoreServlet extends HttpServlet{
 				//to avoid the visitor refresh the page,and the number of visitor keep increasing.So create a session for him
 				session=request.getSession(true);
  				context.setAttribute("counter_visitor", Integer.toString(++counter_visitor));
-				context.getRequestDispatcher("/jsp/user/Visitor.jsp").forward(
+				context.getRequestDispatcher("/jsp/Visitor.jsp").forward(
 							request, response);
 //====================================================	
  			}else{
@@ -80,16 +84,24 @@ public class ShowScoreServlet extends HttpServlet{
 	//=====================================================	
 	//==============3.user not exist ======================
 	 			}else {
-	 				context.getRequestDispatcher("/jsp/user/UserNotExist.jsp").forward(
+	 				context.getRequestDispatcher("/jsp/UserNotExist.jsp").forward(
 							request, response);
 	//=====================================================	
 	 			}
  			}
 
 		}else{//already has a session
+			
  			String id=request.getParameter("id");
 			if(id==null){//a visitor with a session
-				context.getRequestDispatcher("/jsp/user/Visitor.jsp").forward(
+				counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
+				counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
+				int counter_total=counter_login+counter_visitor;
+				counter.setLogin(counter_login);
+				counter.setVisitor(counter_visitor);
+				counter.setTotal(counter_total);
+				session.setAttribute("counter", counter);
+				context.getRequestDispatcher("/jsp/Visitor.jsp").forward(
 						request, response);
 			}else{
 	//==============4.already log in ======================
@@ -181,25 +193,7 @@ public class ShowScoreServlet extends HttpServlet{
 		displayCounter(request, response);
 		out.println("</body></html>");
 	}
-	//special page for the visitor
-	private void displayVisitor(HttpServletRequest request, HttpServletResponse response) throws IOException{
-    	PrintWriter out = response.getWriter();
-    	out.println("<html><title>CMS|visitor</title><body><br>");
-    	out.println ("Welcome 游客~！<br>");
-		out.println ("想看更多信息就去登录吧！~<br>");
-		displayGoToLogin(request,response);
-		displayCounter(request, response);
-		
-		out.println("</body></html>");
-	}
-    private void displayNotExist(HttpServletRequest request, HttpServletResponse response) throws IOException{
-    	PrintWriter out = response.getWriter();
-    	out.println("<html><title>CMS|Wrong ID</title><body><br>");
-		out.println ("对不起该账号不存在！<br>");
-		displayGoToLogin(request,response);
-		displayCounter(request, response);
-		out.println("</body></html>");
-	}
+	
 
 	/**
 	 * Attribute name: exams_not_taken
@@ -231,13 +225,6 @@ public class ShowScoreServlet extends HttpServlet{
 		int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
 		int counter_total=counter_login+counter_visitor;
 		out.println ("<p style='font-size:10px'>站点统计：	在线人数："+counter_total+",已登录："+counter_login+",游客："+counter_visitor+"</p>");
-	}
-	private void displayGoToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException{
-    	PrintWriter out = response.getWriter();
-    	out.println("<form method='POST' action='" + response.encodeURL(request.getContextPath() + "/Login") + "'>");
-		out.println("</p>");
-		out.println("<input type='submit' name='logout_visitor' value='go to login'>");//log out as a visitor
-		out.println("</form>");
 	}
 	//alert user has some exam that should've taken
 	private void displayExamNotTakenAlert(HttpServletRequest request, HttpServletResponse response) throws IOException{
