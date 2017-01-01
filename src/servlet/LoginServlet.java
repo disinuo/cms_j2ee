@@ -22,14 +22,16 @@ public class LoginServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html; charset=UTF-8");
 		HttpSession session = request.getSession(false);
+		ServletContext context= getServletContext();
 		System.out.println("in Login servlet");
 		System.out.println(session);
 		if(session==null){
-			display(request, response);			
+			setCookieId(request, response);
+			context.getRequestDispatcher("/jsp/Login.jsp").forward(
+					request, response);
 		}else{
 			response.sendRedirect(request.getContextPath() + "/ShowScore");
 		}
-		
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -45,7 +47,9 @@ public class LoginServlet extends HttpServlet {
 				session.invalidate();
 				session=null;
 			}
-			display(request, response);		
+			setCookieId(request, response);
+			context.getRequestDispatcher("/jsp/Login.jsp").forward(
+					request, response);
 		}
 		if(request.getParameter("logout_visitor")!=null){
 			if(session!=null){//that's a visitor logging out
@@ -54,53 +58,24 @@ public class LoginServlet extends HttpServlet {
 				session.invalidate();
 				session=null;
 			}
-			display(request, response);		
+			setCookieId(request, response);
+			context.getRequestDispatcher("/jsp/Login.jsp").forward(
+					request, response);
 		}
-
 	}
-	private void display(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		PrintWriter out = response.getWriter();
-		
-		out.println("<html><title>CMS|Login</title><body>");
-		displayTextField(request, response);
-		displayVisitorLogin(request, response);
-		displayCounter(request, response);
-		out.println("</body></html>");
-	}
-	private void displayTextField(HttpServletRequest request, HttpServletResponse response) throws IOException{
+	private void setCookieId(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		String id="";
 		Cookie[] cookies=request.getCookies();
 		if(cookies!=null){
+			System.out.println("cookie not null");
 			for(Cookie cookie:cookies){
 				if(cookie.getName().equals("id")){
 					id=cookie.getValue();
+					request.setAttribute("cookie_id", id);
+					System.out.println("cookie_id="+id);
 					break;
 				}
 			}
 		}
-		PrintWriter out = response.getWriter();
-		out.println("<form  method='post' action='/cms_j2ee/ShowScore'>");		
-		out.println("<label for='id'>name</label>");		
-		out.println("<input id='d' type='text' name='id' value="+id+">");
-		out.println("<label for='password'>password</label>");
-		out.println("<input id='password' type='password' name='password' value=''>");
-		out.println("<input type='submit' name='btn' value='Login'>");
-		out.println("</form>");
-
-	}
-	private void displayVisitorLogin(HttpServletRequest request, HttpServletResponse response) throws IOException{
-    	PrintWriter out = response.getWriter();
-		out.println("<form method='post' action='/cms_j2ee/ShowScore'>");
-		out.println("<input type='submit' name='btn' value='Login_as_a_visitor'>");
-		out.println("</form>");
-
-	}
-	private void displayCounter(HttpServletRequest request, HttpServletResponse response) throws IOException{
-    	PrintWriter out = response.getWriter();
-    	ServletContext context= getServletContext();
-    	int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
-		int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
-		int counter_total=counter_login+counter_visitor;
-		out.println ("<p style='font-size:10px'>站点统计：	在线人数："+counter_total+",已登录："+counter_login+",游客："+counter_visitor+"</p>");
 	}
 }

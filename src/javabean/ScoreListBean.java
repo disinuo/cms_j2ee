@@ -15,5 +15,8 @@ public class ScoreListBean implements Serializable {
 	public void setScoreList(ArrayList<Score> scoreList) {
 		this.scoreList = scoreList;
 	}
+	public Score getScore(int i){
+		return scoreList.get(i);
+	}
 	
 }

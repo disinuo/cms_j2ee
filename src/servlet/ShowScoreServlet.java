@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import factory.ServiceFactory;
+import javabean.ExamListBean;
+import javabean.ScoreListBean;
 import model.Exam;
 import model.OnlineCounter;
 import model.Score;
@@ -29,14 +31,15 @@ import tool.UserType;
  */
 @WebServlet("/ShowScore")
 public class ShowScoreServlet extends HttpServlet{
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws  IOException {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws  IOException {
 		response.setContentType("text/html; charset=UTF-8");
 		ServletContext context= getServletContext();
 		int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
 		int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
-		
-		OnlineCounter counter=new OnlineCounter();
-		counter.setTotal(311);
 		
 		HttpSession session=request.getSession(false);
 		Cookie login_id_cookie=null;
@@ -80,7 +83,9 @@ public class ShowScoreServlet extends HttpServlet{
 					}else{//does not have a loginID cookie
 						addUserIDCookie(response,id);
 					}
-					displayNormal(request, response);
+					getScores(request, response);
+					context.getRequestDispatcher("/jsp/MyScore.jsp").forward(
+							request, response);
 	//=====================================================	
 	//==============3.user not exist ======================
 	 			}else {
@@ -91,16 +96,9 @@ public class ShowScoreServlet extends HttpServlet{
  			}
 
 		}else{//already has a session
-			
- 			String id=request.getParameter("id");
+ 			String id=(String)session.getAttribute("id");
+ 			System.out.println("id???session   "+id);
 			if(id==null){//a visitor with a session
-				counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
-				counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
-				int counter_total=counter_login+counter_visitor;
-				counter.setLogin(counter_login);
-				counter.setVisitor(counter_visitor);
-				counter.setTotal(counter_total);
-				session.setAttribute("counter", counter);
 				context.getRequestDispatcher("/jsp/Visitor.jsp").forward(
 						request, response);
 			}else{
@@ -109,7 +107,10 @@ public class ShowScoreServlet extends HttpServlet{
 				request.setAttribute("id", id);
 				request.setAttribute("type", type);
 				setInfo(request, response);
-				displayNormal(request,response);
+				getScores(request, response);
+				context.getRequestDispatcher("/jsp/MyScore.jsp").forward(
+						request, response);
+//				displayNormal(request, response);
 			}
 			
 		}
@@ -166,14 +167,19 @@ public class ShowScoreServlet extends HttpServlet{
 	 * @throws IOException
 	 */
 	private void getScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		HttpSession session=request.getSession(false);
 		String id=(String)request.getAttribute("id");		
 		ArrayList<Score> scores=scoreService.getTakenScores(id);
-		request.setAttribute("scores", scores);
+		ScoreListBean scoreListBean=new ScoreListBean();
+		scoreListBean.setScoreList(scores);
+		request.setAttribute("scores", scoreListBean);
+		
 		ArrayList<Exam> notTakenExam=examService.getNotTakenExams(id);
-		request.setAttribute("exams_not_taken", notTakenExam);
-		System.out.println("not taken exams   "+notTakenExam.size());
+		ExamListBean examListBean=new ExamListBean();
+		examListBean.setExamList(notTakenExam);
 		if(notTakenExam.size()>0){
-			request.setAttribute("if_has_exam_not_taken", true);
+			request.setAttribute("exams_not_taken", examListBean);
+//			request.setAttribute("if_has_exam_not_taken", true);
 		}
 	}
 

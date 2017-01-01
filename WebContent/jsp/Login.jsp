@@ -8,7 +8,17 @@
 <title>CMS|Login</title>
 </head>
 <body>
-
+<%String id=(String)request.getAttribute("cookie_id"); %>
+	<form  method='post' action='/cms_j2ee/ShowScore'>		
+		<label for='id'>name</label>		
+		<input id='d' type='text' name='id' value=<%=id %>>
+		<label for='password'>password</label>
+		<input id='password' type='password' name='password' value=''>
+		<input type='submit' name='btn' value='Login'>
+	</form>
+	<form method='post' action='/cms_j2ee/ShowScore'>
+		<input type='submit' name='btn' value='Login_as_a_visitor'>
+	</form>
 <%@include file="Counter.jsp" %> 
 </body>
 </html>
