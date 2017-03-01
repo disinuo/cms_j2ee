@@ -1,17 +1,22 @@
 package javabean;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import model.Exam;
 
-import java.util.ArrayList;
-
 public class ExamListBean {
-	private ArrayList<Exam> examList;
+	private List<Exam> examList;
 
 	public ArrayList<Exam> getExamList() {
-		return examList;
+		ArrayList<Exam> res=new ArrayList<Exam>();
+		for(Exam e:examList){
+			res.add(e);
+		}
+		return res;
 	}
 
-	public void setExamList(ArrayList<Exam> examList) {
+	public void setExamList(List<Exam> examList) {
 		this.examList = examList;
 	}
 	public Exam getExam(int i){

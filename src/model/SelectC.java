@@ -10,25 +10,27 @@ import java.io.Serializable;
 @Entity
 @Table(name = "selectC")
 public class SelectC implements Serializable {
-    private Student student;
-    private Course course;
+    private int sid;
+    private int cid;
 
-    @ManyToOne(cascade= CascadeType.ALL)
-    @JoinColumn(name="sid")  //外键
-    public Student getStudent() {
-        return student;
+    @Basic
+    @Column(name = "sid")
+    public int getSid() {
+        return sid;
     }
 
-    public void setStudent(Student student) {
-        this.student=student;
+    public void setSid(int sid) {
+        this.sid=sid;
     }
 
-    @ManyToOne(cascade=CascadeType.ALL)
-    @JoinColumn(name="cid")  //外键
-    public Course getCourse() { return course;}
+    @Basic
+    @Column(name="cid")
+    public int getCid(){
+    	return cid;
+    }
 
-    public void setCourse(Course course) {
-        this.course=course;
+    public void setCid(int cid) {
+        this.cid=cid;
     }
 
     private String id;

@@ -24,13 +24,13 @@ public class Exam implements Serializable {
         this.id = id;
     }
 
-    @ManyToOne(cascade=CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name="cid")  //外键
     public Course getCourse() {
         return course;
     }
 
-    public void setCid(Course course) {
+    public void setCourse(Course course) {
         this.course = course;
     }
 
@@ -52,6 +52,10 @@ public class Exam implements Serializable {
 
     public void setDate(String date) {
         this.date = date;
+    }
+    @Transient
+    public String getCourseName(){
+    	return course.getName();
     }
 
 }

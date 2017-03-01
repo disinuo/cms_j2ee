@@ -1,11 +1,10 @@
 package dao;
 
-import model.Score;
-
-import javax.ejb.Remote;
 import java.util.List;
 
-@Remote
+import model.Exam;
+import model.Score;
+
 public interface ScoreDao {
 	/**
 	 * get scores that the current user has taken

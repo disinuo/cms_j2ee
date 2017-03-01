@@ -9,21 +9,21 @@ import java.io.Serializable;
 @Entity
 @Table(name = "score")
 public class Score implements Serializable {
-    private Student student;
+    private int sid;
     private Exam exam;
     private int score;
 
-    @ManyToOne(cascade=CascadeType.ALL)
-    @JoinColumn(name="sid")  //外键
-    public Student getStudent() {
-        return student;
+//    @ManyToOne
+    @Column(name="sid")  
+    public int getSid() {
+        return sid;
     }
 
-    public void setStudent(Student student) {
-        this.student=student;
+    public void setSid(int sid) {
+        this.sid=sid;
     }
 
-    @ManyToOne(cascade=CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name="eid")  //外键
     public Exam getExam() { return exam;}
 
@@ -51,5 +51,17 @@ public class Score implements Serializable {
 
     public void setId(String id) {
         this.id = id;
+    }
+    @Transient
+    public String getExamName(){
+    	return exam.getName(); 
+    }
+    @Transient
+    public String getExamDate(){
+    	return exam.getDate();
+    }
+    @Transient
+    public String getCourseName(){
+    	return exam.getCourse().getName(); 
     }
 }

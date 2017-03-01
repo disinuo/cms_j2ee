@@ -1,12 +1,9 @@
 package dao;
 
-import model.Exam;
-
-import javax.ejb.Remote;
-import java.util.ArrayList;
 import java.util.List;
 
-@Remote
+import model.Exam;
+
 public interface ExamDao {
 	/**
 	 * get the exams of courses that the current user has chosen

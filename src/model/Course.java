@@ -33,7 +33,7 @@ public class Course implements Serializable {
         this.name = name;
     }
 
-    @ManyToOne(cascade=CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name="tid")  //外键
     public Teacher getTeacher() {
         return teacher;

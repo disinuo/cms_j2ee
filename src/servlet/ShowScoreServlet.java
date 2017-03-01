@@ -1,5 +1,20 @@
 package servlet;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import factory.ServiceFactory;
 import javabean.ExamListBean;
 import javabean.ScoreListBean;
 import model.Exam;
@@ -9,15 +24,6 @@ import service.ScoreService;
 import service.StudentService;
 import service.UserService;
 import tool.UserType;
-
-import javax.ejb.EJB;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
 
 /**
  * Servlet implementation class DatabaseHandler
@@ -30,89 +36,88 @@ public class ShowScoreServlet extends HttpServlet{
 	 */
 	private static final long serialVersionUID = 1L;
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws  IOException {
-//		response.setContentType("text/html; charset=UTF-8");
-//		ServletContext context= getServletContext();
-//		int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
-//		int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
-//
-//		HttpSession session=request.getSession(false);
-//		Cookie login_id_cookie=null;
-//		Cookie[] cookies=request.getCookies();
-//		if(cookies!=null){//looking for the idCookie
-//			for(Cookie ck:cookies){
-//				if(ck.getName().equals("id")){
-//					login_id_cookie=new Cookie("id", ck.getValue());
-//					break;
-//				}
-//			}
-//		}
-//	try {
-// 		if(session==null){// Not has a session
-// 			String id=request.getParameter("id");
-////=============  1.Visitor ===========================
-//			if(id==null){//not login
-//				//to avoid the visitor refresh the page,and the number of visitor keep increasing.So create a session for him
-//				session=request.getSession(true);
-// 				context.setAttribute("counter_visitor", Integer.toString(++counter_visitor));
-//				context.getRequestDispatcher("/jsp/Visitor.jsp").forward(
-//							request, response);
-////====================================================
-// 			}else{
-// 				request.setAttribute("id", id);
-// 				//===============2.first time log in ======================
-//	 			if(userIDIfExist(request,response)){
-//	 				context.setAttribute("counter_login", Integer.toString(++counter_login));
-//	 				setUserType(request, response);
-//	 	 			setInfo(request, response);
-//	 				//then create a session
-//					session=request.getSession(true);
-//					session.setAttribute("id", request.getAttribute("id"));
-//					session.setAttribute("type", request.getAttribute("type"));
-//
-//					if(login_id_cookie!=null){//has a loginID cookie
-//						if(!login_id_cookie.getValue().equals(id)){//not same
-//							//then update the cookie
-//							addUserIDCookie(response,id);
-//						}
-//					}else{//does not have a loginID cookie
-//						addUserIDCookie(response,id);
-//					}
-//					getScores(request, response);
-//					System.out.println("ShowScoreServlet: firstTimeLogin ");
-//					context.getRequestDispatcher("/jsp/Score.jsp").forward(
-//							request, response);
-//	//=====================================================
-//	//==============3.user not exist ======================
-//	 			}else {
-//	 				context.getRequestDispatcher("/jsp/UserNotExist.jsp").forward(
-//							request, response);
-//	//=====================================================
-//	 			}
-// 			}
-//
-//		}else{//already has a session
-// 			String id=(String)session.getAttribute("id");
-// 			System.out.println("id???session   "+id);
-//			if(id==null){//a visitor with a session
-//				context.getRequestDispatcher("/jsp/Visitor.jsp").forward(
-//						request, response);
-//			}else{
-//	//==============4.already log in ======================
-//				UserType type=(UserType)session.getAttribute("type");
-//				request.setAttribute("id", id);
-//				request.setAttribute("type", type);
-//				setInfo(request, response);
-//				getScores(request, response);
-//				context.getRequestDispatcher("/jsp/Score.jsp").forward(
-//						request, response);
-////				displayNormal(request, response);
-//			}
-//
-//		}
-//	} catch (ServletException e) {
-//		// TODO Auto-generated catch block
-//		e.printStackTrace();
-//	}
+		response.setContentType("text/html; charset=UTF-8");
+		ServletContext context= getServletContext();
+		int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
+		int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
+		
+		HttpSession session=request.getSession(false);
+		Cookie login_id_cookie=null;
+		Cookie[] cookies=request.getCookies();
+		if(cookies!=null){//looking for the idCookie
+			for(Cookie ck:cookies){
+				if(ck.getName().equals("id")){
+					login_id_cookie=new Cookie("id", ck.getValue());
+					break;
+				}
+			}
+		}
+	try {
+ 		if(session==null){// Not has a session
+ 			String id=request.getParameter("id");
+//=============  1.Visitor ===========================
+			if(id==null){//not login
+				//to avoid the visitor refresh the page,and the number of visitor keep increasing.So create a session for him
+				session=request.getSession(true);
+ 				context.setAttribute("counter_visitor", Integer.toString(++counter_visitor));
+				context.getRequestDispatcher("/jsp/Visitor.jsp").forward(
+							request, response);
+//====================================================	
+ 			}else{
+ 				request.setAttribute("id", id);
+ 				//===============2.first time log in ======================
+	 			if(userIDIfExist(request,response)){
+	 				context.setAttribute("counter_login", Integer.toString(++counter_login));
+	 				setUserType(request, response);
+	 	 			setInfo(request, response);
+	 				//then create a session
+					session=request.getSession(true);
+					session.setAttribute("id", request.getAttribute("id"));
+					session.setAttribute("type", request.getAttribute("type"));
+					
+					if(login_id_cookie!=null){//has a loginID cookie
+						if(!login_id_cookie.getValue().equals(id)){//not same
+							//then update the cookie
+							addUserIDCookie(response,id);
+						}					
+					}else{//does not have a loginID cookie
+						addUserIDCookie(response,id);
+					}
+					getScores(request, response);
+					context.getRequestDispatcher("/jsp/MyScore.jsp").forward(
+							request, response);
+	//=====================================================	
+	//==============3.user not exist ======================
+	 			}else {
+	 				context.getRequestDispatcher("/jsp/UserNotExist.jsp").forward(
+							request, response);
+	//=====================================================	
+	 			}
+ 			}
+
+		}else{//already has a session
+ 			String id=(String)session.getAttribute("id");
+ 			System.out.println("id???session   "+id);
+			if(id==null){//a visitor with a session
+				context.getRequestDispatcher("/jsp/Visitor.jsp").forward(
+						request, response);
+			}else{
+	//==============4.already log in ======================
+				UserType type=(UserType)session.getAttribute("type");
+				request.setAttribute("id", id);
+				request.setAttribute("type", type);
+				setInfo(request, response);
+				getScores(request, response);
+				context.getRequestDispatcher("/jsp/MyScore.jsp").forward(
+						request, response);
+//				displayNormal(request, response);
+			}
+			
+		}
+	} catch (ServletException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
 
 //====================================================	
     }
@@ -164,12 +169,12 @@ public class ShowScoreServlet extends HttpServlet{
 	private void getScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		HttpSession session=request.getSession(false);
 		String id=(String)request.getAttribute("id");		
-		ArrayList<Score> scores=scoreService.getTakenScores(id);
+		List<Score> scores=scoreService.getTakenScores(id);
 		ScoreListBean scoreListBean=new ScoreListBean();
 		scoreListBean.setScoreList(scores);
 		request.setAttribute("scores", scoreListBean);
 		
-		ArrayList<Exam> notTakenExam=examService.getNotTakenExams(id);
+		List<Exam> notTakenExam=examService.getNotTakenExams(id);
 		ExamListBean examListBean=new ExamListBean();
 		examListBean.setExamList(notTakenExam);
 		if(notTakenExam.size()>0){
@@ -203,21 +208,21 @@ public class ShowScoreServlet extends HttpServlet{
 	 * @throws IOException
 	 */
 	private void displayScores(HttpServletRequest request, HttpServletResponse response) throws IOException{
-//		getScores(request, response);
-//
-//		PrintWriter out = response.getWriter();
-//		ArrayList<Score> scores=(ArrayList<Score>)request.getAttribute("scores");
-//		out.println("我的成绩:  <br>");
-//		out.println("<table><thead><td>课程</td><td>考试</td><td>分数</td></thead>");
-//		for (Score score:scores) {
-//			out.println("<tr><td>"+score.getCourseName()+"</td><td>"+score.getExamName()+"</td><td>"+score.getScore()+"</td></tr>");
-//		}
-//		out.println("</table>");
-////			checkout whether the user has some exam didn't take
-//		Boolean if_has_exam_not_taken=(Boolean)request.getAttribute("if_has_exam_not_taken");
-//		if(if_has_exam_not_taken!=null&&if_has_exam_not_taken){
-//			displayExamNotTakenAlert(request, response);
-//		}
+		getScores(request, response);
+
+		PrintWriter out = response.getWriter();
+		ArrayList<Score> scores=(ArrayList<Score>)request.getAttribute("scores");
+		out.println("我的成绩:  <br>");
+		out.println("<table><thead><td>课程</td><td>考试</td><td>分数</td></thead>");
+		for (Score score:scores) {
+			out.println("<tr><td>"+score.getExam().getCourse().getName()+"</td><td>"+score.getExam().getName()+"</td><td>"+score.getScore()+"</td></tr>");
+		}
+		out.println("</table>");
+//			checkout whether the user has some exam didn't take
+		Boolean if_has_exam_not_taken=(Boolean)request.getAttribute("if_has_exam_not_taken");
+		if(if_has_exam_not_taken!=null&&if_has_exam_not_taken){
+			displayExamNotTakenAlert(request, response);	
+		}
 	}
 	private void displayCounter(HttpServletRequest request, HttpServletResponse response) throws IOException{
     	PrintWriter out = response.getWriter();
@@ -229,14 +234,14 @@ public class ShowScoreServlet extends HttpServlet{
 	}
 	//alert user has some exam that should've taken
 	private void displayExamNotTakenAlert(HttpServletRequest request, HttpServletResponse response) throws IOException{
-//    	PrintWriter out = response.getWriter();
-//		out.println ("<p style='color:red'>您有没参加的考试!</p>");
-//		ArrayList<Exam> exams=(ArrayList<Exam>)request.getAttribute("exams_not_taken");
-//		out.println("<table style='color:red'>");
-//		for(Exam exam:exams) {
-//			out.println("<tr><td>"+exam.getCourseName()+"</td><td>"+exam.getName()+"</td><td>"+exam.getDate()+"</td></tr>");
-//		}
-//		out.println("</table>");
+    	PrintWriter out = response.getWriter();
+		out.println ("<p style='color:red'>您有没参加的考试!</p>");
+		ArrayList<Exam> exams=(ArrayList<Exam>)request.getAttribute("exams_not_taken");
+		out.println("<table style='color:red'>");
+		for(Exam exam:exams) {
+			out.println("<tr><td>"+exam.getCourse().getName()+"</td><td>"+exam.getName()+"</td><td>"+exam.getDate()+"</td></tr>");
+		}
+		out.println("</table>");
 	}
 	public void displayLogoutPage(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		PrintWriter out = response.getWriter();
@@ -266,9 +271,9 @@ public class ShowScoreServlet extends HttpServlet{
     }
 /***********variables****************************************************************
  */
-@EJB StudentService studentService;
-@EJB ScoreService scoreService;
-@EJB ExamService examService;
-@EJB UserService userService;
+	private StudentService studentService=ServiceFactory.getStudentService();
+	private ScoreService scoreService=ServiceFactory.getScoreService();
+	private ExamService examService=ServiceFactory.getExamService();
+	private UserService userService=ServiceFactory.getUserService();
 
 }

@@ -1,9 +1,9 @@
 package service;
 
-import model.Exam;
 import java.util.List;
-import javax.ejb.Remote;
-@Remote
+
+import model.Exam;
+
 public interface ExamService {
 	
 	/**

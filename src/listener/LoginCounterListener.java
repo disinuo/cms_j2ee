@@ -1,11 +1,17 @@
 package listener;
 
-import javax.servlet.*;
-import javax.servlet.annotation.WebListener;
-import javax.servlet.http.HttpSessionEvent;
-import javax.servlet.http.HttpSessionListener;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextAttributeEvent;
+import javax.servlet.ServletContextAttributeListener;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
+import javax.servlet.http.HttpSessionListener;
 
 /**
  * Application Lifecycle Listener implementation class CounterListener
@@ -15,23 +21,13 @@ import java.io.FileReader;
 public class LoginCounterListener implements  
 ServletContextListener, ServletContextAttributeListener,HttpSessionListener {
 	int counter;
-	String counterFilePath= "/Users/disinuo/git/dsn_j2ee/web/counter_login.txt";
+	String counterFilePath= "/Users/disinuo/git/j2ee小作业/j2ee4/WebContent/counter_login.txt";
     /**
      * Default constructor. 
      */
     public LoginCounterListener() {}
-
-	@Override
-	public void attributeAdded(ServletContextAttributeEvent servletContextAttributeEvent) {
-
-	}
-
-	@Override
-	public void attributeRemoved(ServletContextAttributeEvent servletContextAttributeEvent) {
-
-	}
-
-	public void attributeReplaced(ServletContextAttributeEvent scae) {
+    
+    public void attributeReplaced(ServletContextAttributeEvent scae) {
     	System.out.println("ServletContextattribute replaced");
     	writeCounter(scae);
     }
@@ -53,32 +49,18 @@ ServletContextListener, ServletContextAttributeListener,HttpSessionListener {
     	servletContext.setAttribute("counter_login", Integer.toString(counter));
     	System.out.println("listener initialized");
     }
-
-	@Override
-	public void contextDestroyed(ServletContextEvent servletContextEvent) {
-
-	}
-
-	synchronized void writeCounter(ServletContextAttributeEvent scae) {
-//    	ServletContext servletContext= scae.getServletContext();
-//    	counter = Integer.parseInt((String) servletContext.getAttribute("counter_login"));
-//    	try {
-//    		BufferedWriter writer = new BufferedWriter(new FileWriter(counterFilePath));
-//    		writer.write(Integer.toString(counter)+"\n");
-//    		writer.close();
-//    		System.out.println("Writing");
-//    	}catch (Exception e) {
-//    		System.out.println(e.toString());
-//    	}
+    
+    synchronized void writeCounter(ServletContextAttributeEvent scae) {
+    	ServletContext servletContext= scae.getServletContext();
+    	counter = Integer.parseInt((String) servletContext.getAttribute("counter_login"));
+    	try {
+    		BufferedWriter writer = new BufferedWriter(new FileWriter(counterFilePath));
+    		writer.write(Integer.toString(counter)+"\n");
+    		writer.close();
+    		System.out.println("Writing");
+    	}catch (Exception e) {
+    		System.out.println(e.toString());
+    	}
     }
-
-	@Override
-	public void sessionCreated(HttpSessionEvent httpSessionEvent) {
-
-	}
-
-	@Override
-	public void sessionDestroyed(HttpSessionEvent httpSessionEvent) {
-
-	}
+     
 }

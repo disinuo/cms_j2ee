@@ -1,72 +1,67 @@
 package servlet;
 
-import service.UserService;
+import java.io.IOException;
+import java.io.PrintWriter;
 
-import javax.ejb.EJB;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
-import java.io.IOException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 @WebServlet("/Login")
 public class LoginServlet extends HttpServlet {
-	@EJB
-	UserService userService;
+	
     public LoginServlet() {
         super();
     }
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    	userService.text();
-//    	response.setContentType("text/html; charset=UTF-8");
-//		HttpSession session = request.getSession(false);
-////		session.invalidate();
-////		session=null;
-//		ServletContext context= getServletContext();
-//		System.out.println("in Login servlet");
-//		System.out.println(session);
-//		if(session==null){
-//			setCookieId(request, response);
-//			context.getRequestDispatcher("/jsp/Login.jsp").forward(
-//					request, response);
-//		}else{
-//			response.sendRedirect(request.getContextPath() + "/ShowScore");
-//		}
+		response.setContentType("text/html; charset=UTF-8");
+		HttpSession session = request.getSession(false);
+		ServletContext context= getServletContext();
+		System.out.println("in Login servlet");
+		System.out.println(session);
+		if(session==null){
+			setCookieId(request, response);
+			context.getRequestDispatcher("/jsp/Login.jsp").forward(
+					request, response);
+		}else{
+			response.sendRedirect(request.getContextPath() + "/ShowScore");
+		}
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		userService.text();
-//
-//		response.setContentType("text/html; charset=UTF-8");
-//		System.out.println("here is Login's doPost method!");
-//		HttpSession session = request.getSession(false);
-////		session.invalidate();
-////		session=null;
-//		ServletContext context= getServletContext();
-//		if(request.getParameter("logout")!=null){
-//			System.out.println("logging out");
-//			System.out.println(session);
-//			if(session!=null){//that's a login user logging out
-//				int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
-//				context.setAttribute("counter_login", Integer.toString(--counter_login));
-//				session.invalidate();
-//				session=null;
-//			}
-//			setCookieId(request, response);
-//			context.getRequestDispatcher("/jsp/Login.jsp").forward(
-//					request, response);
-//		}
-//		if(request.getParameter("logout_visitor")!=null){
-//			if(session!=null){//that's a visitor logging out
-//				int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
-//				context.setAttribute("counter_visitor", Integer.toString(--counter_visitor));
-//				session.invalidate();
-//				session=null;
-//			}
-//			setCookieId(request, response);
-//			context.getRequestDispatcher("/jsp/Login.jsp").forward(
-//					request, response);
-//		}
+		response.setContentType("text/html; charset=UTF-8");
+		System.out.println("here is Login's doPost method!");
+		HttpSession session = request.getSession(false);
+		ServletContext context= getServletContext();
+		if(request.getParameter("logout")!=null){
+			System.out.println("logging out");
+			if(session!=null){//that's a login user logging out
+				int counter_login=Integer.parseInt((String)context.getAttribute("counter_login"));
+				context.setAttribute("counter_login", Integer.toString(--counter_login));
+				session.invalidate();
+				session=null;
+			}
+			setCookieId(request, response);
+			context.getRequestDispatcher("/jsp/Login.jsp").forward(
+					request, response);
+		}
+		if(request.getParameter("logout_visitor")!=null){
+			if(session!=null){//that's a visitor logging out
+				int counter_visitor=Integer.parseInt((String)context.getAttribute("counter_visitor"));
+				context.setAttribute("counter_visitor", Integer.toString(--counter_visitor));
+				session.invalidate();
+				session=null;
+			}
+			setCookieId(request, response);
+			context.getRequestDispatcher("/jsp/Login.jsp").forward(
+					request, response);
+		}
 	}
 	private void setCookieId(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		String id="";

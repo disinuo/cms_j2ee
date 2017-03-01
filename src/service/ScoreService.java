@@ -1,11 +1,10 @@
 package service;
 
+import java.util.List;
+
 import model.Exam;
 import model.Score;
 
-import java.util.List;
-import javax.ejb.Remote;
-@Remote
 public interface ScoreService {
 	/**
 	 * get scores that the current user has taken

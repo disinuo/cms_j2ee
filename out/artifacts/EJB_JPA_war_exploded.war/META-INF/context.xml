@@ -1,6 +1,0 @@
-<Context>
-  <Resource name="jdbc/myDB" auth="Container" type="javax.sql.DataSource"
-               maxActive="50" maxIdle="30" maxWait="10000" logAbandoned="true"
-                username="root" password="root" driverClassName="com.mysql.jdbc.Driver"
-               url="jdbc:mysql://localhost:8889/myDB?autoReconnect=true"/>
-</Context>
