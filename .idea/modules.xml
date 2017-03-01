@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+<<<<<<< HEAD
       <module fileurl="file://$PROJECT_DIR$/dsn_j2ee.iml" filepath="$PROJECT_DIR$/dsn_j2ee.iml" />
+=======
+      <module fileurl="file://$PROJECT_DIR$/cms_j2ee.iml" filepath="$PROJECT_DIR$/cms_j2ee.iml" />
+>>>>>>> 46af9f7b7b71482b6532930444ae6f3e2490beb7
     </modules>
   </component>
 </project>

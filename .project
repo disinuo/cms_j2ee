@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
+<<<<<<< HEAD
 	<name>j2ee5</name>
+=======
+	<name>cms_j2ee</name>
+>>>>>>> 46af9f7b7b71482b6532930444ae6f3e2490beb7
 	<comment></comment>
 	<projects>
 	</projects>
