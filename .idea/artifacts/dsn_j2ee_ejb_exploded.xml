@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-ejb" name="dsn_j2ee:ejb exploded">
+    <output-path>$PROJECT_DIR$/out/artifacts/dsn_j2ee_ejb_exploded.rar</output-path>
+    <root id="root">
+      <element id="javaee-facet-resources" facet="dsn_j2ee/ejb/EJB" />
+      <element id="module-output" name="dsn_j2ee" />
+    </root>
+  </artifact>
+</component>

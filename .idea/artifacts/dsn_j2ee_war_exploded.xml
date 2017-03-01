@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="dsn_j2ee:war exploded">
+    <output-path>$PROJECT_DIR$/out/artifacts/dsn_j2ee_war_exploded.war</output-path>
+    <root id="root">
+      <element id="javaee-facet-resources" facet="dsn_j2ee/web/Web" />
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="dsn_j2ee" />
+        </element>
+      </element>
+    </root>
+  </artifact>
+</component>
