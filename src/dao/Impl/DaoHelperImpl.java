@@ -1,17 +1,16 @@
 package dao.Impl;
 
+import dao.DaoHelper;
+
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
-
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-
-import dao.DaoHelper;
 
 public class DaoHelperImpl implements DaoHelper{
 

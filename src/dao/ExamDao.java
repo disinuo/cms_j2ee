@@ -1,10 +1,10 @@
 package dao;
 
-import java.util.ArrayList;
-
 import model.Exam;
 
 import javax.ejb.Remote;
+import java.util.ArrayList;
+import java.util.List;
 
 @Remote
 public interface ExamDao {
@@ -13,14 +13,14 @@ public interface ExamDao {
 	 * @param studentId
 	 * @return
 	 */
-	public ArrayList<Exam> getChosenExams(String studentId);
+	public List<Exam> getChosenExams(String studentId);
 	
-	public ArrayList<Exam> getTakenExams(String studentId);
+	public List<Exam> getTakenExams(String studentId);
 	/**
 	 * get all exams in the database
 	 * @return
 	 */
-	public ArrayList<Exam> getAllExams();
+	public List<Exam> getAllExams();
 	/**
 	 * get exam by ID
 	 * @param examId
@@ -32,6 +32,6 @@ public interface ExamDao {
 	 * @param courseId
 	 * @return
 	 */
-	public ArrayList<Exam> getExamOfACourse(String courseId);
+	public List<Exam> getExamOfACourse(String courseId);
 	
 }

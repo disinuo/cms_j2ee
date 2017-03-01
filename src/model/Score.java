@@ -1,59 +1,55 @@
 package model;
 
+import javax.persistence.*;
 import java.io.Serializable;
 
-public class Score implements Serializable{
-	private int examID;
-	private String examName;
-	private String examDate;
-	private String courseName;
-	private int courseID;
-	private int score;
-	private int studentID;
-	
-	public int getStudentID() {
-		return studentID;
-	}
-	public void setStudentID(int studentID) {
-		this.studentID = studentID;
-	}
-	public int getExamID() {
-		return examID;
-	}
-	public void setExamID(int examID) {
-		this.examID = examID;
-	}
-	public String getExamName() {
-		return examName;
-	}
-	public void setExamName(String examName) {
-		this.examName = examName;
-	}
-	
-	public String getExamDate() {
-		return examDate;
-	}
-	public void setExamDate(String examDate) {
-		this.examDate = examDate;
-	}
-	public String getCourseName() {
-		return courseName;
-	}
-	public void setCourseName(String courseName) {
-		this.courseName = courseName;
-	}
-	public int getCourseID() {
-		return courseID;
-	}
-	public void setCourseID(int courseID) {
-		this.courseID = courseID;
-	}
-	public int getScore() {
-		return score;
-	}
-	public void setScore(int score) {
-		this.score = score;
-	}
-	
-	
+/**
+ * Created by disinuo on 17/2/25.
+ */
+@Entity
+@Table(name = "score")
+public class Score implements Serializable {
+    private Student student;
+    private Exam exam;
+    private int score;
+
+    @ManyToOne(cascade=CascadeType.ALL)
+    @JoinColumn(name="sid")  //外键
+    public Student getStudent() {
+        return student;
+    }
+
+    public void setStudent(Student student) {
+        this.student=student;
+    }
+
+    @ManyToOne(cascade=CascadeType.ALL)
+    @JoinColumn(name="eid")  //外键
+    public Exam getExam() { return exam;}
+
+    public void setExam(Exam exam) {
+        this.exam = exam;
+    }
+
+    @Basic
+    @Column(name = "score")
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
+    }
+
+
+    private String id;
+
+    @Id
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 }

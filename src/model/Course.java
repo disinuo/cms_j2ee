@@ -1,35 +1,46 @@
 package model;
 
+import javax.persistence.*;
 import java.io.Serializable;
 
-public class Course implements Serializable{
-	private int id;
-	private String name;
-	private int teacherID;
-	private String teacherName;
-	public int getId() {
-		return id;
-	}
-	public void setId(int id) {
-		this.id = id;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public int getTeacherID() {
-		return teacherID;
-	}
-	public void setTeacherID(int teacherID) {
-		this.teacherID = teacherID;
-	}
-	public String getTeacherName() {
-		return teacherName;
-	}
-	public void setTeacherName(String teacherName) {
-		this.teacherName = teacherName;
-	}
+/**
+ * Created by disinuo on 17/2/25.
+ */
+@Entity
+@Table(name = "course", schema = "myDB", catalog = "")
+public class Course implements Serializable {
+    private int id;
+    private String name;
+    private Teacher teacher;
+
+    @Id
+    @Column(name = "id")
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    @Basic
+    @Column(name = "name")
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @ManyToOne(cascade=CascadeType.ALL)
+    @JoinColumn(name="tid")  //外键
+    public Teacher getTeacher() {
+        return teacher;
+    }
+
+    public void setTeacher(Teacher teacher) {
+        this.teacher = teacher;
+    }
 
 }

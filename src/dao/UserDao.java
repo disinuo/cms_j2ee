@@ -1,6 +1,7 @@
 package dao;
 
 import tool.UserType;
+
 import javax.ejb.Remote;
 
 @Remote

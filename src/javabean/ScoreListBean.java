@@ -1,9 +1,9 @@
 package javabean;
 
+import model.Score;
+
 import java.io.Serializable;
 import java.util.ArrayList;
-
-import model.Score;
 
 public class ScoreListBean implements Serializable {
 	private ArrayList<Score> scoreList;

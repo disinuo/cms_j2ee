@@ -6,78 +6,46 @@ import dao.Impl.DaoHelperImpl;
 import model.Exam;
 
 import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by disinuo on 17/2/24.
  */
 @Stateless(name = "ExamDaoBeanEJB")
-public class ExamDaoBean implements ExamDao{
-    private static DaoHelper daoHelper= DaoHelperImpl.getInstance();
+public class ExamDaoBean implements ExamDao {
+    @PersistenceContext
+    protected EntityManager em;
+
     public ExamDaoBean() {}
 
     @Override
-    public ArrayList<Exam> getChosenExams(String studentId) {
-        String sql="SELECT exam.id as examID,exam.name as examName,exam.date as examDate,selectC.cid as courseID,course.name as courseName FROM selectC,exam,course WHERE selectC.cid = exam.cid AND course.id=selectC.cid AND selectC.sid = ?";
-        ResultSet rs=daoHelper.handlePreparedStatement(sql,studentId);
-        ArrayList<Exam> exams=new ArrayList<Exam>();
-        try {
-            if(rs!=null){
-                while(rs.next()){
-                    Exam exam=new Exam();
-                    exam.setId(rs.getInt("examID"));
-                    exam.setName(rs.getString("examName"));
-                    exam.setDate(rs.getString("examDate"));
-                    exam.setCourseID(rs.getInt("courseID"));
-                    exam.setCourseName(rs.getString("courseName"));
-                    exams.add(exam);
-                }
-            }else{
-                System.out.println( "getExamsChosen  resultSet is null");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }finally {
-            daoHelper.closeResultSet(rs);
-            daoHelper.closeStatement_Connection();
-        }
+    public List<Exam> getChosenExams(String studentId) {
+        String sql="SELECT Exam  FROM SelectC,Exam,Course WHERE SelectC.course.id = Exam.course.id AND Course.id=SelectC.course.id AND SelectC.student.id = :sid";
+        Query query = em.createQuery(sql).setParameter("sid",studentId);
+        List<Exam> exams =(List<Exam>)query.getResultList();
+        em.clear();//在处理大量实体的时候，如果不把已经处理过的实体从EntityManager中分离出来，将会消耗大量的内存；此方法分离内存中受管理的实体Bean，让VM进行垃圾回收
+        return exams;
+
+    }
+
+    @Override
+    public List<Exam> getTakenExams(String studentId) {
+        String sql="SELECT Exam FROM Exam,Course,Score WHERE Score.exam.id=Exam.id AND Course.id=Exam.course.id AND Score.student.id =:sid";
+        Query query = em.createQuery(sql).setParameter("sid",studentId);
+        List<Exam> exams =(List<Exam>)query.getResultList();
+        em.clear();//在处理大量实体的时候，如果不把已经处理过的实体从EntityManager中分离出来，将会消耗大量的内存；此方法分离内存中受管理的实体Bean，让VM进行垃圾回收
         return exams;
     }
 
     @Override
-    public ArrayList<Exam> getTakenExams(String studentId) {
-        String sql="SELECT exam.id as examID,exam.name as examName,exam.date as examDate,course.id as courseID,course.name as courseName FROM exam,course,score WHERE score.eid=exam.id AND course.id=exam.cid AND score.sid =?";
-        ResultSet rs=daoHelper.handlePreparedStatement(sql,studentId);
-        ArrayList<Exam> exams=new ArrayList<Exam>();
-        try {
-//			System.out.print("in getSCores method resultSet: "+rs);
-            if(rs!=null){
-                while(rs.next()){
-                    Exam exam=new Exam();
-                    exam.setId(rs.getInt("examID"));
-                    exam.setName(rs.getString("examName"));
-                    exam.setDate(rs.getString("examDate"));
-                    exam.setCourseID(rs.getInt("courseID"));
-                    exam.setCourseName(rs.getString("courseName"));
-                    exams.add(exam);
-                }
-            }else{
-                //TODO handle resultSet is null
-                System.out.println( "getTakenExams  resultSet is null");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }finally {
-            daoHelper.closeResultSet(rs);
-            daoHelper.closeStatement_Connection();
-        }
-        return exams;
-    }
-
-    @Override
-    public ArrayList<Exam> getAllExams() {
+    public List<Exam> getAllExams() {
         // TODO Auto-generated method stub
         return null;
     }
@@ -89,7 +57,7 @@ public class ExamDaoBean implements ExamDao{
     }
 
     @Override
-    public ArrayList<Exam> getExamOfACourse(String courseId) {
+    public List<Exam> getExamOfACourse(String courseId) {
         // TODO Auto-generated method stub
         return null;
     }

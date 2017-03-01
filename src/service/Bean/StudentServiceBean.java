@@ -1,9 +1,7 @@
 package service.Bean;
 
-import dao.Impl.StudentDaoImpl;
 import dao.StudentDao;
 import model.Student;
-import service.Impl.StudentServiceImpl;
 import service.StudentService;
 
 import javax.ejb.EJB;

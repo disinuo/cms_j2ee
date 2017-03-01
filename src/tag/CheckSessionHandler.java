@@ -1,11 +1,11 @@
 package tag;
-import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.TagSupport;
+import java.io.IOException;
 
 public class CheckSessionHandler extends TagSupport {  
     private static final long serialVersionUID = 1L;  

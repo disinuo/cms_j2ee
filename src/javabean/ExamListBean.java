@@ -1,8 +1,8 @@
 package javabean;
 
-import java.util.ArrayList;
-
 import model.Exam;
+
+import java.util.ArrayList;
 
 public class ExamListBean {
 	private ArrayList<Exam> examList;

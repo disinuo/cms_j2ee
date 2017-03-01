@@ -1,9 +1,9 @@
 package dao;
 
-import java.util.ArrayList;
-
 import model.Score;
+
 import javax.ejb.Remote;
+import java.util.List;
 
 @Remote
 public interface ScoreDao {
@@ -12,22 +12,22 @@ public interface ScoreDao {
 	 * @param studentId
 	 * @return
 	 */
-	public ArrayList<Score> getTakenScores(String studentId);
+	public List<Score> getTakenScores(String studentId);
 	/**
 	 * get all scores in the database
 	 * @return
 	 */
-	public ArrayList<Score> getAllScores();
+	public List<Score> getAllScores();
 	/**
 	 * get all scores of a course
 	 * @param courseId
 	 * @return
 	 */
-	public ArrayList<Score> getScoresOfACourse(String courseId);
+	public List<Score> getScoresOfACourse(String courseId);
 	/**
 	 * get all scores of an exam
 	 * @param examId
 	 * @return
 	 */
-	public ArrayList<Score> getScoresOfAnExam(String examId);
+	public List<Score> getScoresOfAnExam(String examId);
 }

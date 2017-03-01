@@ -1,86 +1,93 @@
 package model;
+
+import javax.persistence.*;
 import java.io.Serializable;
-import tool.Sex;
 
-public class Student extends User implements Serializable{
-	private String chineseName;
-	private String email;
-	private Sex sex;
-	private int grade;
-	private int classNum;
-	private String major;
-	
+/**
+ * Created by disinuo on 17/2/25.
+ */
+@Entity
+@Table(name = "student", schema = "myDB", catalog = "")
+public class Student implements Serializable {
+    private int id;
+    private String chineseName;
+    private int clazz;
+    private String sex;
+    private int grade;
 
-	
+    @Id
+    @Column(name = "id")
+    public int getId() {
+        return id;
+    }
 
-	public String getChineseName() {
-		return chineseName;
-	}
+    public void setId(int id) {
+        this.id = id;
+    }
 
+    @Basic
+    @Column(name = "chineseName")
+    public String getChineseName() {
+        return chineseName;
+    }
 
-	public void setChineseName(String name) {
-		this.chineseName = name;
-	}
+    public void setChineseName(String chineseName) {
+        this.chineseName = chineseName;
+    }
 
+    @Basic
+    @Column(name = "class")
+    public int getClazz() {
+        return clazz;
+    }
 
-	public String getEmail() {
-		return email;
-	}
+    public void setClazz(int clazz) {
+        this.clazz = clazz;
+    }
 
+    @Basic
+    @Column(name = "sex")
+    public String getSex() {
+        return sex;
+    }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    public void setSex(String sex) {
+        this.sex = sex;
+    }
 
+    @Basic
+    @Column(name = "grade")
+    public int getGrade() {
+        return grade;
+    }
 
-	public Sex getSex() {
-		return sex;
-	}
+    public void setGrade(int grade) {
+        this.grade = grade;
+    }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-	public void setSex(Sex sex) {
-		this.sex = sex;
-	}
+        Student that = (Student) o;
 
+        if (id != that.id) return false;
+        if (clazz != that.clazz) return false;
+        if (grade != that.grade) return false;
+        if (chineseName != null ? !chineseName.equals(that.chineseName) : that.chineseName != null) return false;
+        if (sex != null ? !sex.equals(that.sex) : that.sex != null) return false;
 
-	public int getGrade() {
-		return grade;
-	}
+        return true;
+    }
 
-
-	public void setGrade(int grade) {
-		this.grade = grade;
-	}
-
-
-	public int getClassNum() {
-		return classNum;
-	}
-
-
-	public void setClassNum(int classNum) {
-		this.classNum = classNum;
-	}
-
-
-	public String getMajor() {
-		return major;
-	}
-
-
-	public void setMajor(String major) {
-		this.major = major;
-	}
-
-
-	public static long getSerialversionuid() {
-		return serialVersionUID;
-	}
-
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + (chineseName != null ? chineseName.hashCode() : 0);
+        result = 31 * result + clazz;
+        result = 31 * result + (sex != null ? sex.hashCode() : 0);
+        result = 31 * result + grade;
+        return result;
+    }
 }

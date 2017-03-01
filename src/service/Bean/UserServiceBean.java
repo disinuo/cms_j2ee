@@ -1,8 +1,6 @@
 package service.Bean;
 
 import dao.UserDao;
-import factory.DaoFactory;
-import service.Impl.UserServiceImpl;
 import service.UserService;
 import tool.UserType;
 
@@ -14,7 +12,8 @@ import javax.ejb.Stateless;
  */
 @Stateless(name = "UserServiceEJB")
 public class UserServiceBean implements UserService {
-    @EJB UserDao userDao;
+    @EJB
+    UserDao userDao;
 
     @Override
     public boolean ifExist(String id) {
