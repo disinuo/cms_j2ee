@@ -7,7 +7,7 @@
 <title>Insert title here</title>
 </head>
 <body>
-	<form method='POST' action='/j2ee7/Login'>
+	<form method='POST' action='/j2ee8/Login'>
 		<input type='submit' name='logout_visitor' value='go to login'>
 	</form>
 

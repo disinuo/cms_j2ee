@@ -7,10 +7,10 @@
 <title>CMS|showScore</title>
 </head>
 <body>
-<jsp:useBean id="scores" type="javabean.ScoreListBean" scope="request"></jsp:useBean>
-<jsp:useBean id="score" class="model.Score" scope="page"></jsp:useBean>
-<jsp:useBean id="exams_not_taken" class="javabean.ExamListBean" scope="request"></jsp:useBean>
-<jsp:useBean id="exam" class="model.Exam" scope="page"></jsp:useBean>
+<jsp:useBean id="scores" type="com.javabean.ScoreListBean" scope="request"></jsp:useBean>
+<jsp:useBean id="score" class="com.model.Score" scope="page"></jsp:useBean>
+<jsp:useBean id="exams_not_taken" class="com.javabean.ExamListBean" scope="request"></jsp:useBean>
+<jsp:useBean id="exam" class="com.model.Exam" scope="page"></jsp:useBean>
 	
 	<p>Welcome!  <%=request.getAttribute("chineseName")%></p>
 	<TABLE width="100%" border="0" cellpadding="0" cellspacing="1">
